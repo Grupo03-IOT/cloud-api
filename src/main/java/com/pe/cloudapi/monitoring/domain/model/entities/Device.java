@@ -1,8 +1,7 @@
 package com.pe.cloudapi.monitoring.domain.model.entities;
 
-import com.pe.cloudapi.monitoring.domain.model.commands.RecordDeviceBatchCommand;
 import com.pe.cloudapi.monitoring.domain.model.commands.RegisterDeviceCommand;
-import com.pe.cloudapi.monitoring.domain.model.valueobjects.DeviceStatus;
+import com.pe.cloudapi.monitoring.domain.model.commands.SyncDeviceStateCommand;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,9 +16,15 @@ import java.util.UUID;
  * <p>Se mantiene separado de la sala a propósito: cambiar un módulo quemado no
  * puede costarle a la sala su historia.
  *
- * <p>Se lleva cuenta del número de secuencia de los lotes para detectar
- * huecos, que es como se hace visible la pérdida de paquetes entre el
- * dispositivo y el Edge.
+ * <p>El cloud no ve los lotes uno a uno —solo el resumen por minuto que sube el
+ * Edge—, así que la detección de huecos en la secuencia ocurre en el Edge y
+ * aquí solo se refleja. Ver {@link SyncDeviceStateCommand}.
+ *
+ * <p>Esta entidad guarda <strong>observaciones</strong>, no interpretaciones:
+ * cuándo se le oyó por última vez, con qué secuencia y cuántos lotes se
+ * perdieron. Si un dispositivo está caído o no es una lectura de esos datos, y
+ * se resolverá en la fase de alertas junto con el trabajo programado que avise
+ * al administrador.
  */
 @Getter
 @Builder(toBuilder = true)
@@ -41,22 +46,17 @@ public class Device {
 
     @Setter private String fwVersion;
 
-    /** Instante del último lote recibido. Nulo si nunca ha reportado. */
+    /** Instante del último lote que le llegó al Edge. Nulo si nunca ha reportado. */
     @Setter private OffsetDateTime lastSeen;
 
     /**
-     * Número de secuencia del último lote recibido, o {@link #NEVER_REPORTED}
-     * si todavía no ha llegado ninguno.
+     * Número de secuencia del último lote, o {@link #NEVER_REPORTED} si todavía
+     * no ha llegado ninguno.
      */
     @Setter private long lastSeq;
 
-    /**
-     * Lotes que nunca llegaron, deducidos de los saltos en la secuencia.
-     * Es acumulativo durante toda la vida del dispositivo.
-     */
+    /** Lotes perdidos acumulados, contados por el Edge. */
     @Setter private long lostBatches;
-
-    @Setter private DeviceStatus status;
 
     /**
      * Da de alta un dispositivo que todavía no ha reportado nada.
@@ -69,32 +69,30 @@ public class Device {
         this.roomId = command.roomId();
         this.lastSeq = NEVER_REPORTED;
         this.lostBatches = 0L;
-        this.status = DeviceStatus.UNKNOWN;
     }
 
     /**
-     * Registra la llegada de un lote y contabiliza los que se perdieron.
+     * Refleja el estado que el Edge reporta del dispositivo.
      *
-     * <p>El dispositivo numera sus lotes de forma correlativa, así que un salto
-     * en la secuencia significa que algo no llegó: si el último recibido fue el
-     * 43 y entra el 46, se perdieron dos. Esa cuenta es la única forma de saber
-     * que hubo pérdida, porque un lote que no llega no deja ningún otro rastro.
+     * <p>Los contadores se copian, no se recalculan: el Edge es la única capa
+     * que ve la secuencia completa de lotes.
      *
-     * <p>El primer lote tras el alta no cuenta como pérdida, aunque su
-     * secuencia sea alta: el dispositivo pudo llevar tiempo funcionando antes
-     * de que el cloud supiera de él.
+     * <p>Se ignoran los reportes que traigan una secuencia anterior a la ya
+     * conocida. Ocurre cuando el Edge vacía una cola atrasada tras un corte de
+     * red: llegan minutos viejos después de otros más nuevos, y sin esta guarda
+     * el estado del dispositivo retrocedería.
      *
-     * @param command lote recibido, con su secuencia, instante y versión de
-     *                firmware
+     * @param command estado reportado por el Edge
      */
-    public void handle(RecordDeviceBatchCommand command) {
-        if (lastSeq > NEVER_REPORTED && command.seq() > lastSeq + 1) {
-            lostBatches += command.seq() - lastSeq - 1;
+    public void handle(SyncDeviceStateCommand command) {
+        if (command.lastSeq() < this.lastSeq) {
+            return;
         }
-        this.lastSeq = command.seq();
-        this.lastSeen = command.seenAt();
+        this.roomId = command.roomId();
         this.fwVersion = command.fwVersion();
-        this.status = DeviceStatus.ONLINE;
+        this.lastSeen = command.lastSeen();
+        this.lastSeq = command.lastSeq();
+        this.lostBatches = command.lostBatches();
     }
 
     /**

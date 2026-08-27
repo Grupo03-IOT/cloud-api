@@ -26,9 +26,9 @@ public enum ThresholdMetric {
     /**
      * Reconstruye la métrica desde su representación persistida.
      *
-     * <p>A diferencia de {@code DeviceStatus}, aquí un valor desconocido sí
-     * falla: un umbral sobre una métrica que el sistema no sabe evaluar es un
-     * error de configuración que conviene ver de inmediato.
+     * <p>Un valor desconocido falla a propósito: un umbral sobre una métrica
+     * que el sistema no sabe evaluar es un error de configuración que conviene
+     * ver de inmediato.
      *
      * @param code texto guardado
      * @return la métrica correspondiente

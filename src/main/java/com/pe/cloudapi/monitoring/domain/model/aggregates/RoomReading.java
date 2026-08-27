@@ -41,6 +41,19 @@ public class RoomReading {
     private final DataQuality quality;
     private final OffsetDateTime receivedAt;
 
+    /**
+     * Registra el agregado de un minuto tal como lo sube el Edge.
+     *
+     * <p>Los value objects que lleguen nulos se sustituyen por su versión
+     * vacía, para que quien consuma la lectura no tenga que comprobar nulos en
+     * cada nivel.
+     *
+     * <p>{@code receivedAt} se sella aquí, no lo trae el comando: es el
+     * instante en que el cloud recibe el dato, y no debe poder falsearlo quien
+     * lo envía.
+     *
+     * @param command agregado del minuto, ya calculado en el Edge
+     */
     public RoomReading(RecordRoomReadingCommand command) {
         this.id = null;
         this.roomId = command.roomId();
@@ -54,6 +67,16 @@ public class RoomReading {
         this.receivedAt = OffsetDateTime.now();
     }
 
+    /**
+     * Indica si el minuto está respaldado por todos los lotes que debía
+     * recibir.
+     *
+     * <p>Una lectura poco fiable no es incorrecta, pero se construyó con menos
+     * datos de los previstos, así que conviene excluirla de las correlaciones
+     * y las regresiones.
+     *
+     * @return {@code true} si llegaron todos los lotes esperados
+     */
     public boolean isReliable() {
         return quality != null && quality.isComplete();
     }

@@ -34,6 +34,12 @@ public class Room {
     @Setter private Float areaM2;
     @Setter private boolean active;
 
+    /**
+     * Da de alta una sala. Nace activa y sin clasificar.
+     *
+     * @param command alta con el local, el código del firmware y el nombre
+     *                visible
+     */
     public Room(CreateRoomCommand command) {
         this.id = null;
         this.siteId = command.siteId();
@@ -42,10 +48,24 @@ public class Room {
         this.active = true;
     }
 
+    /**
+     * Indica si un administrador ya asignó un tipo a la sala.
+     *
+     * <p>Mientras no lo esté, la sala no tiene umbrales aplicables, porque los
+     * umbrales cuelgan del tipo y no de la sala.
+     *
+     * @return {@code true} si tiene tipo asignado
+     */
     public boolean isClassified() {
         return roomTypeId != null;
     }
 
+    /**
+     * Asigna el tipo de sala. A partir de aquí le aplican los umbrales de ese
+     * tipo.
+     *
+     * @param command tipo a asignar
+     */
     public void handle(ClassifyRoomCommand command) {
         this.roomTypeId = command.roomTypeId();
     }

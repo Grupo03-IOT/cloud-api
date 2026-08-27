@@ -14,10 +14,26 @@ public enum ThresholdMetric {
     OCCUPIED_PCT,
     TEMP_C;
 
+    /**
+     * Representación persistida, en minúsculas.
+     *
+     * @return el nombre de la constante en minúsculas
+     */
     public String toCode() {
         return name().toLowerCase();
     }
 
+    /**
+     * Reconstruye la métrica desde su representación persistida.
+     *
+     * <p>A diferencia de {@code DeviceStatus}, aquí un valor desconocido sí
+     * falla: un umbral sobre una métrica que el sistema no sabe evaluar es un
+     * error de configuración que conviene ver de inmediato.
+     *
+     * @param code texto guardado
+     * @return la métrica correspondiente
+     * @throws IllegalArgumentException si el texto no corresponde a ninguna
+     */
     public static ThresholdMetric fromCode(String code) {
         return valueOf(code.toUpperCase());
     }

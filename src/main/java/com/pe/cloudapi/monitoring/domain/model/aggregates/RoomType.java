@@ -24,6 +24,11 @@ public class RoomType {
     @Setter private String displayName;
     @Setter private String description;
 
+    /**
+     * Da de alta un tipo de sala dentro de un local.
+     *
+     * @param command alta con el local, el código y el nombre visible
+     */
     public RoomType(CreateRoomTypeCommand command) {
         this.id = null;
         this.siteId = command.siteId();

@@ -8,6 +8,11 @@ package com.pe.cloudapi.monitoring.domain.model.valueobjects;
  */
 public record Climate(Float tempC, Float rhPct) {
 
+    /**
+     * Instancia sin datos, para minutos en los que no llegó lectura ambiental.
+     *
+     * @return clima con temperatura y humedad nulas
+     */
     public static Climate empty() {
         return new Climate(null, null);
     }

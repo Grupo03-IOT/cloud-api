@@ -18,10 +18,23 @@ public record ThermalComfort(Float pmv, Float ppd, String verdict) {
 
     private static final float ASHRAE_55_ACCEPTABLE_PPD = 10f;
 
+    /**
+     * Instancia sin datos, para minutos sin cálculo de confort.
+     *
+     * @return confort con PMV, PPD y veredicto nulos
+     */
     public static ThermalComfort empty() {
         return new ThermalComfort(null, null, null);
     }
 
+    /**
+     * Indica si el confort entra en la banda que ASHRAE 55 considera
+     * aceptable: menos de un 10% de personas insatisfechas.
+     *
+     * <p>Equivale a un PMV entre -0,5 y +0,5.
+     *
+     * @return {@code true} si el PPD está por debajo del 10%
+     */
     public boolean isAcceptable() {
         return ppd != null && ppd < ASHRAE_55_ACCEPTABLE_PPD;
     }

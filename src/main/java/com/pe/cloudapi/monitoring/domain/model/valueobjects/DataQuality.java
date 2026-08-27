@@ -12,14 +12,30 @@ package com.pe.cloudapi.monitoring.domain.model.valueobjects;
  */
 public record DataQuality(Integer batches, Integer expected) {
 
+    /**
+     * Calidad desconocida, para lecturas que no informan cuántos lotes las
+     * respaldan.
+     *
+     * @return calidad con ambos recuentos nulos
+     */
     public static DataQuality unknown() {
         return new DataQuality(null, null);
     }
 
+    /**
+     * Indica si llegaron todos los lotes previstos para el periodo.
+     *
+     * @return {@code false} también cuando se desconoce el recuento
+     */
     public boolean isComplete() {
         return batches != null && expected != null && batches >= expected;
     }
 
+    /**
+     * Cuántos lotes faltaron.
+     *
+     * @return 0 si llegaron todos o si se desconoce el recuento
+     */
     public int missingBatches() {
         if (batches == null || expected == null) return 0;
         return Math.max(0, expected - batches);

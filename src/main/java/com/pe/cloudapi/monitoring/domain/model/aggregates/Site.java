@@ -27,6 +27,11 @@ public class Site {
     @Setter private String address;
     @Setter private String timezone;
 
+    /**
+     * Da de alta un local. Si no se indica zona horaria se asume la de Lima.
+     *
+     * @param command alta con código, nombre, dirección y zona horaria
+     */
     public Site(CreateSiteCommand command) {
         this.id = null;
         this.code = command.code();

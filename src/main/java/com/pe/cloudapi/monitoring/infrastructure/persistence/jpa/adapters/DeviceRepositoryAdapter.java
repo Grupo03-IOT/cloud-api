@@ -5,6 +5,7 @@ import com.pe.cloudapi.monitoring.domain.repositories.DeviceRepository;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities.DeviceEntity;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.mappers.DeviceMapper;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.repositories.DeviceJpaRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

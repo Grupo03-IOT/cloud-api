@@ -6,6 +6,7 @@ import com.pe.cloudapi.monitoring.domain.model.valueobjects.Climate;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.DataQuality;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Occupancy;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThermalComfort;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

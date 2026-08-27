@@ -1,5 +1,7 @@
 package com.pe.cloudapi.monitoring.domain.model.valueobjects;
 
+import com.pe.cloudapi.monitoring.domain.model.errors.MonitoringError;
+
 /**
  * Magnitud sobre la que se puede configurar un
  * {@link com.pe.cloudapi.monitoring.domain.model.entities.Threshold}.
@@ -26,15 +28,20 @@ public enum ThresholdMetric {
     /**
      * Reconstruye la métrica desde su representación persistida.
      *
-     * <p>A diferencia de {@code DeviceStatus}, aquí un valor desconocido sí
-     * falla: un umbral sobre una métrica que el sistema no sabe evaluar es un
-     * error de configuración que conviene ver de inmediato.
+     * <p>Un valor desconocido falla a propósito: un umbral sobre una métrica
+     * que el sistema no sabe evaluar es un error de configuración que conviene
+     * ver de inmediato.
      *
      * @param code texto guardado
      * @return la métrica correspondiente
-     * @throws IllegalArgumentException si el texto no corresponde a ninguna
+     * @throws com.pe.cloudapi.shared.domain.model.errors.DomainException
+     *         si el texto no corresponde a ninguna métrica conocida
      */
     public static ThresholdMetric fromCode(String code) {
-        return valueOf(code.toUpperCase());
+        try {
+            return valueOf(code.toUpperCase());
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            throw MonitoringError.UNKNOWN_THRESHOLD_METRIC.with(code);
+        }
     }
 }

@@ -5,6 +5,7 @@ import com.pe.cloudapi.monitoring.domain.repositories.RoomReadingRepository;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities.RoomReadingEntity;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.mappers.RoomReadingMapper;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.repositories.RoomReadingJpaRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -1,6 +1,7 @@
 package com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities;
 
 import com.pe.cloudapi.shared.infrastructure.persistence.jpa.entities.AuditableModel;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -40,7 +41,7 @@ public class DeviceEntity extends AuditableModel {
     @Column(name = "last_seen")
     private OffsetDateTime lastSeen;
 
-    @Column(name = "last_seq", nullable = false)
+    @Column(name = "last_seq")
     private Long lastSeq;
 
     @Column(name = "lost_batches", nullable = false)

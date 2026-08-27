@@ -2,6 +2,7 @@ package com.pe.cloudapi.monitoring.domain.model.entities;
 
 import com.pe.cloudapi.monitoring.domain.model.commands.RegisterDeviceCommand;
 import com.pe.cloudapi.monitoring.domain.model.commands.SyncDeviceStateCommand;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,9 +32,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Device {
 
-    /** Valor de {@code lastSeq} cuando el dispositivo aún no ha enviado nada. */
-    private static final long NEVER_REPORTED = -1L;
-
     private final UUID id;
 
     /**
@@ -49,11 +47,8 @@ public class Device {
     /** Instante del último lote que le llegó al Edge. Nulo si nunca ha reportado. */
     @Setter private OffsetDateTime lastSeen;
 
-    /**
-     * Número de secuencia del último lote, o {@link #NEVER_REPORTED} si todavía
-     * no ha llegado ninguno.
-     */
-    @Setter private long lastSeq;
+    /** Secuencia del último lote, o nulo si todavía no ha llegado ninguno. */
+    @Setter private Long lastSeq;
 
     /** Lotes perdidos acumulados, contados por el Edge. */
     @Setter private long lostBatches;
@@ -67,7 +62,6 @@ public class Device {
         this.id = null;
         this.code = command.code();
         this.roomId = command.roomId();
-        this.lastSeq = NEVER_REPORTED;
         this.lostBatches = 0L;
     }
 
@@ -85,7 +79,7 @@ public class Device {
      * @param command estado reportado por el Edge
      */
     public void handle(SyncDeviceStateCommand command) {
-        if (command.lastSeq() < this.lastSeq) {
+        if (lastSeq != null && command.lastSeq() != null && command.lastSeq() < lastSeq) {
             return;
         }
         this.roomId = command.roomId();
@@ -101,6 +95,6 @@ public class Device {
      * @return {@code false} mientras siga recién dado de alta
      */
     public boolean hasEverReported() {
-        return lastSeq > NEVER_REPORTED;
+        return lastSeen != null;
     }
 }

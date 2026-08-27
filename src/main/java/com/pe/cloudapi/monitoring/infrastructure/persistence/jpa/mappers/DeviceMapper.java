@@ -2,9 +2,10 @@
 
 import com.pe.cloudapi.monitoring.domain.model.entities.Device;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities.DeviceEntity;
+
 import org.springframework.stereotype.Component;
 
-/**
+ /**
  * Traduce entre la entidad de dominio {@code Device} y su entidad JPA.
  *
  * <p>No mapea la columna {@code status} de la tabla: solo se guardan
@@ -21,7 +22,7 @@ public class DeviceMapper {
                 .code(entity.getCode())
                 .fwVersion(entity.getFwVersion())
                 .lastSeen(entity.getLastSeen())
-                .lastSeq(entity.getLastSeq() == null ? -1L : entity.getLastSeq())
+                .lastSeq(entity.getLastSeq())
                 .lostBatches(entity.getLostBatches() == null ? 0L : entity.getLostBatches())
                 .build();
     }

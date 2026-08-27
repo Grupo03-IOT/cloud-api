@@ -15,5 +15,7 @@ public enum ErrorKind {
 
     CONFLICT,
 
-    UNPROCESSABLE
+    UNPROCESSABLE,
+
+    INTERNAL
 }

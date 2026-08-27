@@ -20,7 +20,8 @@ public final class ErrorKindHttpMapper {
             case VALIDATION -> HttpStatus.BAD_REQUEST;
             case NOT_FOUND -> HttpStatus.NOT_FOUND;
             case CONFLICT -> HttpStatus.CONFLICT;
-            case UNPROCESSABLE -> HttpStatus.UNPROCESSABLE_ENTITY;
+            case UNPROCESSABLE -> HttpStatus.UNPROCESSABLE_CONTENT;
+            case INTERNAL -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }
 }

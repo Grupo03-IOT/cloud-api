@@ -11,6 +11,13 @@ import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Activa la auditoría de Spring Data JPA.
+ *
+ * <p>El proveedor de fechas fuerza UTC a propósito: toda la telemetría viaja en
+ * UTC desde el ESP32, y mezclar horas locales en las columnas de auditoría
+ * produce desfases muy difíciles de depurar después.
+ */
 @Configuration
 @EnableJpaAuditing(auditorAwareRef = "auditorProvider", dateTimeProviderRef = "utcDateTimeProvider")
 public class JpaAuditingConfiguration {

@@ -10,6 +10,13 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * Metadatos de la especificación OpenAPI.
+ *
+ * <p>La interfaz queda en {@code /swagger-ui.html} y la especificación en
+ * {@code /v3/api-docs}. Se redacta en inglés por ser el idioma por defecto del
+ * producto.
+ */
 @Configuration
 public class OpenApiConfiguration {
 

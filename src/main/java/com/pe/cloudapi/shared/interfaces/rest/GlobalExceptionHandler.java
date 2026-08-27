@@ -2,11 +2,14 @@ package com.pe.cloudapi.shared.interfaces.rest;
 
 import com.pe.cloudapi.shared.domain.model.errors.DomainException;
 import com.pe.cloudapi.shared.domain.model.errors.ErrorCatalog;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestValueException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -57,6 +60,18 @@ public class GlobalExceptionHandler {
                                                           HttpServletRequest request) {
         return respond(ApiError.MALFORMED_REQUEST,
                 ApiError.MALFORMED_REQUEST.messageTemplate(), request, List.of());
+    }
+
+    /**
+     * Falta un parámetro obligatorio de la consulta, de la ruta o una cabecera.
+     */
+    @ExceptionHandler(MissingRequestValueException.class)
+    public ResponseEntity<ErrorResponse> handleMissingValue(MissingRequestValueException ex,
+                                                            HttpServletRequest request) {
+        String name = ex instanceof MissingServletRequestParameterException missing
+                ? missing.getParameterName() : "unknown";
+        DomainException error = ApiError.MISSING_PARAMETER.with(name);
+        return respond(error.getError(), error.getMessage(), request, List.of());
     }
 
     /**

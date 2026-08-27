@@ -25,6 +25,9 @@ public enum ApiError implements ErrorCatalog {
     INVALID_PARAMETER(ErrorKind.VALIDATION,
             "Parameter '%s' is not %s"),
 
+    MISSING_PARAMETER(ErrorKind.VALIDATION,
+            "Required parameter '%s' is missing"),
+
     /**
      * Lo que no estaba previsto. Un catálogo enumera lo que se anticipa, así
      * que esta entrada es justamente la que cubre lo que no.

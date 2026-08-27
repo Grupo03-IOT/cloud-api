@@ -2,6 +2,7 @@ package com.pe.cloudapi.monitoring.domain.model.aggregates;
 
 import com.pe.cloudapi.monitoring.domain.model.commands.ClassifyRoomCommand;
 import com.pe.cloudapi.monitoring.domain.model.commands.CreateRoomCommand;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

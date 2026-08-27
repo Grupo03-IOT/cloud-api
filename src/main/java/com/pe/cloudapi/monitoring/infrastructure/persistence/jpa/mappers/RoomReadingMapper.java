@@ -7,6 +7,7 @@ import com.pe.cloudapi.monitoring.domain.model.valueobjects.DataQuality;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Occupancy;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThermalComfort;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities.RoomReadingEntity;
+
 import org.springframework.stereotype.Component;
 
 /**

@@ -1,6 +1,7 @@
 package com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.repositories;
 
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities.SiteEntity;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

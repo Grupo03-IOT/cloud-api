@@ -2,6 +2,7 @@ package com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.mappers;
 
 import com.pe.cloudapi.monitoring.domain.model.aggregates.RoomType;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities.RoomTypeEntity;
+
 import org.springframework.stereotype.Component;
 
 /**

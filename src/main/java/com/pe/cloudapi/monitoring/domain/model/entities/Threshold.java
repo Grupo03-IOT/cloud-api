@@ -2,6 +2,7 @@ package com.pe.cloudapi.monitoring.domain.model.entities;
 
 import com.pe.cloudapi.monitoring.domain.model.commands.ConfigureThresholdCommand;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThresholdMetric;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

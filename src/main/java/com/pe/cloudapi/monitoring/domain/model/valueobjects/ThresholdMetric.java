@@ -1,5 +1,7 @@
 package com.pe.cloudapi.monitoring.domain.model.valueobjects;
 
+import com.pe.cloudapi.monitoring.domain.model.errors.MonitoringError;
+
 /**
  * Magnitud sobre la que se puede configurar un
  * {@link com.pe.cloudapi.monitoring.domain.model.entities.Threshold}.
@@ -32,9 +34,14 @@ public enum ThresholdMetric {
      *
      * @param code texto guardado
      * @return la métrica correspondiente
-     * @throws IllegalArgumentException si el texto no corresponde a ninguna
+     * @throws com.pe.cloudapi.shared.domain.model.errors.DomainException
+     *         si el texto no corresponde a ninguna métrica conocida
      */
     public static ThresholdMetric fromCode(String code) {
-        return valueOf(code.toUpperCase());
+        try {
+            return valueOf(code.toUpperCase());
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            throw MonitoringError.UNKNOWN_THRESHOLD_METRIC.with(code);
+        }
     }
 }

@@ -31,9 +31,6 @@ public enum MonitoringError implements ErrorCatalog {
     RANGE_INVERTED(ErrorKind.VALIDATION,
             "The start of the range is after its end: %s > %s"),
 
-    UNKNOWN_THRESHOLD_METRIC(ErrorKind.VALIDATION,
-            "'%s' is not a metric a threshold can be set on"),
-
     EMPTY_BATCH(ErrorKind.VALIDATION,
             "The batch carries no readings"),
 

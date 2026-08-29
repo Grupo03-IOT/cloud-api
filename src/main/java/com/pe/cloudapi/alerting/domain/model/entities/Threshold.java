@@ -1,7 +1,7 @@
-package com.pe.cloudapi.monitoring.domain.model.entities;
+package com.pe.cloudapi.alerting.domain.model.entities;
 
-import com.pe.cloudapi.monitoring.domain.model.commands.ConfigureThresholdCommand;
-import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThresholdMetric;
+import com.pe.cloudapi.alerting.domain.model.commands.ConfigureThresholdCommand;
+import com.pe.cloudapi.alerting.domain.model.valueobjects.ThresholdMetric;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

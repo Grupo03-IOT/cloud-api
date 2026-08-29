@@ -13,7 +13,7 @@ import lombok.Setter;
  * Proyección de persistencia de un local. Tabla {@code site}.
  */
 @Entity
-@Table(name = "site")
+@Table(name = "site", schema = "monitoring")
 @Getter
 @Setter
 @NoArgsConstructor

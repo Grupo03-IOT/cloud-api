@@ -1,11 +1,11 @@
-package com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.adapters;
+package com.pe.cloudapi.alerting.infrastructure.persistence.jpa.adapters;
 
-import com.pe.cloudapi.monitoring.domain.model.entities.Threshold;
-import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThresholdMetric;
-import com.pe.cloudapi.monitoring.domain.repositories.ThresholdRepository;
-import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities.ThresholdEntity;
-import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.mappers.ThresholdMapper;
-import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.repositories.ThresholdJpaRepository;
+import com.pe.cloudapi.alerting.domain.model.entities.Threshold;
+import com.pe.cloudapi.alerting.domain.model.valueobjects.ThresholdMetric;
+import com.pe.cloudapi.alerting.domain.repositories.ThresholdRepository;
+import com.pe.cloudapi.alerting.infrastructure.persistence.jpa.entities.ThresholdEntity;
+import com.pe.cloudapi.alerting.infrastructure.persistence.jpa.mappers.ThresholdMapper;
+import com.pe.cloudapi.alerting.infrastructure.persistence.jpa.repositories.ThresholdJpaRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -40,10 +40,5 @@ public class ThresholdRepositoryAdapter implements ThresholdRepository {
     @Override
     public Optional<Threshold> findByRoomTypeIdAndMetric(UUID roomTypeId, ThresholdMetric metric) {
         return jpa.findByRoomTypeIdAndMetric(roomTypeId, metric.toCode()).map(mapper::toDomain);
-    }
-
-    @Override
-    public List<Threshold> findApplicableToRoom(UUID roomId) {
-        return jpa.findApplicableToRoom(roomId).stream().map(mapper::toDomain).toList();
     }
 }

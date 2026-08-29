@@ -1,10 +1,10 @@
-package com.pe.cloudapi.monitoring.domain.model.valueobjects;
+package com.pe.cloudapi.alerting.domain.model.valueobjects;
 
-import com.pe.cloudapi.monitoring.domain.model.errors.MonitoringError;
+import com.pe.cloudapi.alerting.domain.model.errors.AlertingError;
 
 /**
  * Magnitud sobre la que se puede configurar un
- * {@link com.pe.cloudapi.monitoring.domain.model.entities.Threshold}.
+ * {@link com.pe.cloudapi.alerting.domain.model.entities.Threshold}.
  *
  * <p>Se persiste en minúsculas; convertir con {@link #toCode()} y
  * {@link #fromCode(String)}.
@@ -41,7 +41,7 @@ public enum ThresholdMetric {
         try {
             return valueOf(code.toUpperCase());
         } catch (IllegalArgumentException | NullPointerException ex) {
-            throw MonitoringError.UNKNOWN_THRESHOLD_METRIC.with(code);
+            throw AlertingError.UNKNOWN_THRESHOLD_METRIC.with(code);
         }
     }
 }

@@ -1,6 +1,6 @@
-package com.pe.cloudapi.monitoring.domain.model.commands;
+package com.pe.cloudapi.alerting.domain.model.commands;
 
-import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThresholdMetric;
+import com.pe.cloudapi.alerting.domain.model.valueobjects.ThresholdMetric;
 
 import java.util.UUID;
 

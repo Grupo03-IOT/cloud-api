@@ -15,24 +15,32 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Una migración de Flyway por bounded context.
+ * Una migración de Flyway por bounded context, cada una con su esquema y su
+ * propia tabla de historial: por eso todos empiezan por {@code V1}.
+ *
+ * <p>Los contextos se descubren leyendo las carpetas bajo {@code db/migration};
+ * no hay lista que mantener. <strong>El nombre de la carpeta es el nombre del
+ * esquema.</strong>
  */
 @Slf4j
 @Configuration
 public class FlywayConfiguration {
 
     private static final String MIGRATION_ROOT = "db/migration/";
+
+    /** {@code classpath*:} recorre todas las entradas, no solo la primera. */
     private static final String DISCOVERY_PATTERN = "classpath*:" + MIGRATION_ROOT + "*/*.sql";
 
     /**
-     * Reemplaza la migración única de Spring Boot por una por contexto.
+     * Sustituye la migración única de Spring Boot por una por contexto.
      *
-     * <p>La instancia que Spring Boot construye se ignora a propósito: de ella
-     * solo interesa el momento en que se dispara, no lo que migraría.
+     * <p>Se sustituye la estrategia en vez de desactivar la autoconfiguración
+     * porque Hibernate depende de su bean para no validar el esquema antes de
+     * que las migraciones corran.
      *
      * @param dataSource fuente de datos de la aplicación
-     * @param resolver   con el que se descubren las carpetas de migraciones
-     * @return la estrategia que migra todos los contextos encontrados
+     * @param resolver   con el que se descubren las carpetas
+     * @return la estrategia que migra cada contexto encontrado
      */
     @Bean
     public FlywayMigrationStrategy boundedContextMigrationStrategy(DataSource dataSource,
@@ -40,7 +48,7 @@ public class FlywayConfiguration {
         return autoConfigured -> {
             Set<String> contexts = discoverContexts(resolver);
             if (contexts.isEmpty()) {
-                log.warn("No se encontró ninguna carpeta de migraciones bajo {}", MIGRATION_ROOT);
+                log.warn("Sin carpetas de migración bajo {}", MIGRATION_ROOT);
                 return;
             }
             log.info("Migrando bounded contexts: {}", contexts);
@@ -49,11 +57,13 @@ public class FlywayConfiguration {
     }
 
     /**
-     * Nombres de carpeta bajo {@code db/migration} que contienen migraciones.
+     * Carpetas con migraciones bajo {@code db/migration}.
      *
-     * <p>Se ordenan alfabéticamente solo para que el registro sea estable: el
-     * orden entre contextos es indiferente, porque ninguno referencia tablas de
-     * otro. Si algún día importara, sería señal de que la separación se rompió.
+     * <p>Ordenadas solo para que el registro sea estable: el orden entre
+     * contextos es indiferente porque ninguno referencia tablas de otro.
+     *
+     * @param resolver resolutor de recursos del classpath
+     * @return los nombres de contexto encontrados
      */
     private Set<String> discoverContexts(ResourcePatternResolver resolver) {
         Set<String> contexts = new TreeSet<>();
@@ -76,6 +86,12 @@ public class FlywayConfiguration {
         return contexts;
     }
 
+    /**
+     * Migra un contexto contra su propio esquema.
+     *
+     * @param dataSource fuente de datos
+     * @param context    nombre del contexto, que es también el del esquema
+     */
     private void migrate(DataSource dataSource, String context) {
         Flyway.configure()
                 .dataSource(dataSource)
@@ -87,7 +103,6 @@ public class FlywayConfiguration {
                 .migrate();
     }
 
-    /** Dónde vive la carpeta de migraciones de un contexto. */
     private static String locationOf(String context) {
         return "classpath:" + MIGRATION_ROOT + context;
     }

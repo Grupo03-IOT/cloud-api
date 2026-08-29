@@ -1,4 +1,4 @@
-package com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities;
+package com.pe.cloudapi.alerting.infrastructure.persistence.jpa.entities;
 
 import com.pe.cloudapi.shared.infrastructure.persistence.jpa.entities.AuditableModel;
 
@@ -18,7 +18,7 @@ import java.util.UUID;
  * reconstruye en el mapper.
  */
 @Entity
-@Table(name = "threshold")
+@Table(name = "threshold", schema = "alerting")
 @Getter
 @Setter
 @NoArgsConstructor

@@ -22,7 +22,7 @@ import java.util.UUID;
  * es {@code receivedAt}.
  */
 @Entity
-@Table(name = "room_reading")
+@Table(name = "room_reading", schema = "monitoring")
 @Getter
 @Setter
 @NoArgsConstructor

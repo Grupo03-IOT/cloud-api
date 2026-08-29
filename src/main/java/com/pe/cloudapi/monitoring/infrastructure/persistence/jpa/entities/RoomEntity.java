@@ -15,7 +15,7 @@ import java.util.UUID;
  * Proyección de persistencia de una sala. Tabla {@code room}.
  */
 @Entity
-@Table(name = "room")
+@Table(name = "room", schema = "monitoring")
 @Getter
 @Setter
 @NoArgsConstructor

@@ -1,6 +1,6 @@
-package com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.repositories;
+package com.pe.cloudapi.alerting.infrastructure.persistence.jpa.repositories;
 
-import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities.ThresholdEntity;
+import com.pe.cloudapi.alerting.infrastructure.persistence.jpa.entities.ThresholdEntity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,17 +27,4 @@ public interface ThresholdJpaRepository extends JpaRepository<ThresholdEntity, U
             WHERE t.roomTypeId = :roomTypeId AND t.metric = :metric AND t.deletedAt IS NULL
             """)
     Optional<ThresholdEntity> findByRoomTypeIdAndMetric(UUID roomTypeId, String metric);
-
-    /**
-     * Umbrales aplicables a una sala, resueltos a través de su tipo. Devuelve
-     * vacío si la sala todavía no está clasificada.
-     */
-    @Query("""
-            SELECT t FROM ThresholdEntity t, RoomEntity r
-            WHERE r.id = :roomId
-              AND t.roomTypeId = r.roomTypeId
-              AND t.enabled = TRUE
-              AND t.deletedAt IS NULL
-            """)
-    List<ThresholdEntity> findApplicableToRoom(UUID roomId);
 }

@@ -7,8 +7,6 @@ import com.pe.cloudapi.monitoring.interfaces.rest.resources.RoomResource;
 
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.OffsetDateTime;
 
 /**
  * Traduce salas del dominio a su representación REST.
@@ -18,9 +16,8 @@ public class RoomResourceAssembler {
 
     /**
      * @param snapshot sala junto a su última lectura
-     * @param now      instante contra el que se calcula la frescura del dato
      */
-    public RoomResource toResource(RoomSnapshot snapshot, OffsetDateTime now) {
+    public RoomResource toResource(RoomSnapshot snapshot) {
         Room room = snapshot.room();
         return new RoomResource(
                 room.getId(),
@@ -31,13 +28,12 @@ public class RoomResourceAssembler {
                 room.getAreaM2(),
                 room.isActive(),
                 room.isClassified(),
-                snapshot.latest().map(reading -> toLatest(reading, now)).orElse(null));
+                snapshot.latest().map(this::toLatest).orElse(null));
     }
 
-    private RoomResource.Latest toLatest(RoomReading reading, OffsetDateTime now) {
+    private RoomResource.Latest toLatest(RoomReading reading) {
         return new RoomResource.Latest(
                 reading.getTs(),
-                Math.max(0, Duration.between(reading.getTs(), now).toSeconds()),
                 reading.getAcoustic().laeq(),
                 reading.getClimate().tempC(),
                 reading.getClimate().rhPct(),

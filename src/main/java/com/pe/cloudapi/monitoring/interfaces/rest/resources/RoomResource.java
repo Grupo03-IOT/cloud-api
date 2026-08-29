@@ -37,20 +37,16 @@ public record RoomResource(
     /**
      * Resumen de la última lectura.
      *
-     * <p>{@code ageSeconds} es la <strong>frescura del dato</strong>: cuántos
-     * segundos han pasado desde el minuto que describe. Se devuelve el número
-     * en bruto a propósito, sin traducirlo a un estado tipo «en línea» o
-     * «caído»: quién consume decide qué es demasiado viejo para su caso. Una
-     * app que elige sala tolera cinco minutos; un panel de mantenimiento, no.
+     * <p>La frescura se deduce de {@code ts}: es el minuto que la lectura
+     * describe, y comparándolo con la hora actual el cliente sabe cuán vieja
+     * es. No se envía la antigüedad ya calculada porque envejecería en cuanto
+     * saliera de aquí, mientras que {@code ts} es un hecho que no caduca.
      */
     @Schema(description = "Summary of the latest reading")
     public record Latest(
 
-            @Schema(description = "Minuto que describe la lectura")
+            @Schema(description = "Minuto que describe la lectura, en UTC")
             OffsetDateTime ts,
-
-            @Schema(description = "Antigüedad del dato en segundos", example = "95")
-            long ageSeconds,
 
             @Schema(description = "Nivel sonoro equivalente en dBA") Float laeq,
             Float tempC,

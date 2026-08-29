@@ -14,9 +14,6 @@ public enum AlertingError implements ErrorCatalog {
     UNKNOWN_THRESHOLD_METRIC(ErrorKind.VALIDATION,
             "'%s' is not a metric a threshold can be set on"),
 
-    THRESHOLD_NOT_FOUND(ErrorKind.NOT_FOUND,
-            "No threshold is configured for room type %s and metric %s"),
-
     INVALID_THRESHOLD_RANGE(ErrorKind.VALIDATION,
             "The warning value must be below the critical one: %s >= %s");
 

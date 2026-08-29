@@ -16,23 +16,26 @@ public enum MonitoringError implements ErrorCatalog {
     ROOM_NOT_FOUND(ErrorKind.NOT_FOUND,
             "Room %s does not exist"),
 
-    ROOM_REQUIRED(ErrorKind.VALIDATION,
-            "A room identifier is required"),
-
     ROOM_HAS_NO_READINGS(ErrorKind.NOT_FOUND,
             "Room %s has not reported any reading yet"),
 
-    ROOM_NOT_CLASSIFIED(ErrorKind.UNPROCESSABLE,
-            "Room %s has no room type assigned, so no thresholds apply to it"),
+    SITE_NOT_FOUND(ErrorKind.NOT_FOUND,
+            "Site %s does not exist"),
 
-    RANGE_REQUIRED(ErrorKind.VALIDATION,
-            "The range needs both a start and an end"),
+    SITE_CODE_ALREADY_USED(ErrorKind.CONFLICT,
+            "A site with code '%s' already exists"),
+
+    ROOM_TYPE_NOT_FOUND(ErrorKind.NOT_FOUND,
+            "Room type %s does not exist"),
+
+    ROOM_TYPE_CODE_ALREADY_USED(ErrorKind.CONFLICT,
+            "Site %s already has a room type with code '%s'"),
+
+    ROOM_TYPE_FROM_ANOTHER_SITE(ErrorKind.UNPROCESSABLE,
+            "Room type %s belongs to a different site than room %s"),
 
     RANGE_INVERTED(ErrorKind.VALIDATION,
             "The start of the range is after its end: %s > %s"),
-
-    EMPTY_BATCH(ErrorKind.VALIDATION,
-            "The batch carries no readings"),
 
     NO_SITE_AVAILABLE(ErrorKind.CONFLICT,
             "No site is registered, so rooms cannot be attached to one");

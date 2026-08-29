@@ -1,5 +1,6 @@
 package com.pe.cloudapi.alerting.domain.model.commands;
 
+import com.pe.cloudapi.alerting.domain.model.errors.AlertingError;
 import com.pe.cloudapi.alerting.domain.model.valueobjects.ThresholdMetric;
 
 import java.util.UUID;
@@ -15,4 +16,11 @@ public record ConfigureThresholdCommand(
         Float criticalValue,
         int sustainedMinutes,
         boolean enabled
-) {}
+) {
+
+    public ConfigureThresholdCommand {
+        if (criticalValue != null && warnValue >= criticalValue) {
+            throw AlertingError.INVALID_THRESHOLD_RANGE.with(warnValue, criticalValue);
+        }
+    }
+}

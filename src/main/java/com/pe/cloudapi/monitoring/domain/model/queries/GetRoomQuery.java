@@ -1,7 +1,6 @@
 package com.pe.cloudapi.monitoring.domain.model.queries;
 
-import com.pe.cloudapi.monitoring.domain.model.errors.MonitoringError;
-
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -12,8 +11,6 @@ import java.util.UUID;
 public record GetRoomQuery(UUID roomId) {
 
     public GetRoomQuery {
-        if (roomId == null) {
-            throw MonitoringError.ROOM_REQUIRED.with();
-        }
+        Objects.requireNonNull(roomId, "roomId");
     }
 }

@@ -1,5 +1,6 @@
 package com.pe.cloudapi.monitoring.interfaces.rest;
 
+import com.pe.cloudapi.monitoring.application.internal.ports.in.ClassifyRoom;
 import com.pe.cloudapi.monitoring.application.internal.ports.in.GetLatestReading;
 import com.pe.cloudapi.monitoring.application.internal.ports.in.GetReadingsInRange;
 import com.pe.cloudapi.monitoring.application.internal.ports.in.GetRoom;
@@ -7,9 +8,11 @@ import com.pe.cloudapi.monitoring.application.internal.ports.in.ListRooms;
 import com.pe.cloudapi.monitoring.application.internal.ports.in.ListUnclassifiedRooms;
 import com.pe.cloudapi.monitoring.application.internal.results.RoomReadings;
 import com.pe.cloudapi.monitoring.domain.model.aggregates.Room;
+import com.pe.cloudapi.monitoring.domain.model.commands.ClassifyRoomCommand;
 import com.pe.cloudapi.monitoring.domain.model.queries.GetLatestReadingQuery;
 import com.pe.cloudapi.monitoring.domain.model.queries.GetReadingsInRangeQuery;
 import com.pe.cloudapi.monitoring.domain.model.queries.GetRoomQuery;
+import com.pe.cloudapi.monitoring.interfaces.rest.resources.ClassifyRoomResource;
 import com.pe.cloudapi.monitoring.interfaces.rest.resources.ReadingResource;
 import com.pe.cloudapi.monitoring.interfaces.rest.resources.RoomResource;
 import com.pe.cloudapi.monitoring.interfaces.rest.transform.ReadingResourceAssemblerFromDomain;
@@ -24,13 +27,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,6 +59,7 @@ public class RoomsController {
     private final GetRoom getRoomUseCase;
     private final GetReadingsInRange getReadingsInRangeUseCase;
     private final GetLatestReading getLatestReadingUseCase;
+    private final ClassifyRoom classifyRoomUseCase;
     private final RoomResourceAssembler roomAssembler;
     private final ReadingResourceAssemblerFromDomain readingAssembler;
 
@@ -68,9 +74,8 @@ public class RoomsController {
                     recent reading, including how many seconds old that reading is. \
                     Consumers decide what counts as too old for their use case.""")
     public List<RoomResource> listRooms() {
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
         return listRoomsUseCase.execute().stream()
-                .map(snapshot -> roomAssembler.toResource(snapshot, now))
+                .map(roomAssembler::toResource)
                 .toList();
     }
 
@@ -80,9 +85,8 @@ public class RoomsController {
     @GetMapping("/unclassified")
     @Operation(summary = "List auto-registered rooms awaiting classification")
     public List<RoomResource> listUnclassified() {
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
         return listUnclassifiedRoomsUseCase.execute().stream()
-                .map(snapshot -> roomAssembler.toResource(snapshot, now))
+                .map(roomAssembler::toResource)
                 .toList();
     }
 
@@ -93,9 +97,7 @@ public class RoomsController {
             @ApiResponse(responseCode = "404", description = "Room does not exist")
     })
     public RoomResource getRoom(@PathVariable UUID roomId) {
-        return roomAssembler.toResource(
-                getRoomUseCase.execute(new GetRoomQuery(roomId)),
-                OffsetDateTime.now(ZoneOffset.UTC));
+        return roomAssembler.toResource(getRoomUseCase.execute(new GetRoomQuery(roomId)));
     }
 
     /**
@@ -139,6 +141,26 @@ public class RoomsController {
     })
     public ReadingResource getLatestReading(@PathVariable UUID roomId) {
         return toResources(getLatestReadingUseCase.execute(new GetLatestReadingQuery(roomId))).getFirst();
+    }
+
+    /**
+     * Asigna un tipo a la sala.
+     *
+     * <p>Es lo que la saca de la bandeja de pendientes: hasta que se clasifica
+     * no tiene umbrales aplicables.
+     */
+    @PatchMapping(value = "/{roomId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Assign a room type to a room")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Room classified"),
+            @ApiResponse(responseCode = "404", description = "Room or room type not found"),
+            @ApiResponse(responseCode = "422",
+                    description = "The room type belongs to a different site")
+    })
+    public RoomResource classifyRoom(@PathVariable UUID roomId,
+                                     @Valid @RequestBody ClassifyRoomResource resource) {
+        return roomAssembler.toResource(classifyRoomUseCase.execute(
+                new ClassifyRoomCommand(roomId, resource.roomTypeId())));
     }
 
     private List<ReadingResource> toResources(RoomReadings result) {

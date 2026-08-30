@@ -1,10 +1,11 @@
 package com.pe.cloudapi.insights.application.internal.usecases;
 
-import com.pe.cloudapi.insights.application.internal.ports.in.AnalyzeRoom;
+import com.pe.cloudapi.insights.application.internal.ports.in.AnalyzeRoomUseCase;
 import com.pe.cloudapi.insights.domain.model.errors.InsightsError;
 import com.pe.cloudapi.insights.domain.model.queries.AnalyzeRoomQuery;
-import com.pe.cloudapi.insights.domain.model.results.RoomAnalytics;
+import com.pe.cloudapi.insights.domain.model.valueobjects.RoomAnalytics;
 import com.pe.cloudapi.insights.domain.model.valueobjects.ReadingPoint;
+import com.pe.cloudapi.insights.domain.ports.out.WeatherObservationRepository;
 import com.pe.cloudapi.insights.domain.ports.out.ReadingSeriesProvider;
 import com.pe.cloudapi.insights.domain.services.ComfortAnalyticsService;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +24,10 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class AnalyzeRoomUseCase implements AnalyzeRoom {
+public class AnalyzeRoomUseCaseImpl implements AnalyzeRoomUseCase {
 
     private final ReadingSeriesProvider readings;
+    private final WeatherObservationRepository weatherObservations;
     private final ComfortAnalyticsService analytics;
 
     @Override
@@ -34,6 +36,7 @@ public class AnalyzeRoomUseCase implements AnalyzeRoom {
         if (series.size() < ComfortAnalyticsService.MINIMUM_SAMPLE) {
             throw InsightsError.RANGE_TOO_SHORT.with(ComfortAnalyticsService.MINIMUM_SAMPLE);
         }
-        return analytics.analyze(query.roomId(), query.from(), query.to(), series);
+        return analytics.analyze(query.roomId(), query.from(), query.to(), series,
+                weatherObservations.findInRange(query.from(), query.to()));
     }
 }

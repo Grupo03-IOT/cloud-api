@@ -1,7 +1,8 @@
 package com.pe.cloudapi.insights.domain.services;
 
-import com.pe.cloudapi.insights.domain.model.results.RoomAnalytics;
+import com.pe.cloudapi.insights.domain.model.valueobjects.RoomAnalytics;
 import com.pe.cloudapi.insights.domain.model.valueobjects.Correlation;
+import com.pe.cloudapi.insights.domain.model.aggregates.WeatherObservation;
 import com.pe.cloudapi.insights.domain.model.valueobjects.ReadingPoint;
 import com.pe.cloudapi.insights.domain.model.valueobjects.Trend;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
@@ -33,12 +34,65 @@ public class ComfortAnalyticsService {
     private static final long MILLIS_PER_HOUR = Duration.ofHours(1).toMillis();
 
     public RoomAnalytics analyze(UUID roomId, OffsetDateTime from, OffsetDateTime to,
-                                 List<ReadingPoint> series) {
+                                 List<ReadingPoint> series,
+                                 List<WeatherObservation> outdoor) {
         return new RoomAnalytics(
                 roomId, from, to, series.size(),
                 noiseVsOccupancy(series),
                 thermalDrift(series),
+                indoorVsOutdoor(series, outdoor),
                 noiseAnomalies(series));
+    }
+
+    /**
+     * ¿La temperatura de la sala sigue a la de la calle?
+     *
+     * <p>Una correlación alta significa que la sala está a merced del exterior:
+     * mal aislada, o con climatización insuficiente. Una baja significa que
+     * mantiene su temperatura por su cuenta, que es lo deseable.
+     *
+     * <p>Las dos series tienen cadencias distintas —el interior por minuto, el
+     * exterior cada diez— así que cada observación exterior se empareja con la
+     * lectura interior más cercana en el tiempo. Emparejar por índice, que es
+     * lo que uno haría sin pensar, compararía momentos que no se corresponden.
+     */
+    private Correlation indoorVsOutdoor(List<ReadingPoint> series,
+                                        List<WeatherObservation> outdoor) {
+        List<WeatherObservation> usableOutdoor = outdoor.stream()
+                .filter(o -> o.getTempC() != null)
+                .toList();
+        List<ReadingPoint> usableIndoor = series.stream()
+                .filter(p -> p.tempC() != null)
+                .toList();
+        if (usableOutdoor.size() < MINIMUM_SAMPLE || usableIndoor.isEmpty()) {
+            return Correlation.insufficientData(usableOutdoor.size());
+        }
+
+        double[] inside = new double[usableOutdoor.size()];
+        double[] outside = new double[usableOutdoor.size()];
+        for (int i = 0; i < usableOutdoor.size(); i++) {
+            WeatherObservation observation = usableOutdoor.get(i);
+            inside[i] = nearestIndoorTemperature(usableIndoor, observation.getObservedAt());
+            outside[i] = observation.getTempC();
+        }
+
+        double coefficient = new PearsonsCorrelation().correlation(inside, outside);
+        return Double.isNaN(coefficient)
+                ? Correlation.insufficientData(usableOutdoor.size())
+                : new Correlation(coefficient, usableOutdoor.size());
+    }
+
+    private double nearestIndoorTemperature(List<ReadingPoint> series, OffsetDateTime instant) {
+        ReadingPoint nearest = series.getFirst();
+        long bestDistance = Long.MAX_VALUE;
+        for (ReadingPoint point : series) {
+            long distance = Math.abs(Duration.between(point.ts(), instant).toMillis());
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                nearest = point;
+            }
+        }
+        return nearest.tempC();
     }
 
     /**

@@ -1,7 +1,5 @@
-package com.pe.cloudapi.insights.domain.model.results;
+package com.pe.cloudapi.insights.domain.model.valueobjects;
 
-import com.pe.cloudapi.insights.domain.model.valueobjects.Correlation;
-import com.pe.cloudapi.insights.domain.model.valueobjects.Trend;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -16,6 +14,7 @@ import java.util.UUID;
  * @param sampleSize        minutos con datos
  * @param noiseVsOccupancy  si el ruido sube con la gente o es del ambiente
  * @param thermalDrift      cuánto se calienta la sala por hora
+ * @param indoorVsOutdoor   si la sala sigue a la calle: aislamiento térmico
  * @param noiseAnomalies    minutos con picos fuera de lo normal
  */
 public record RoomAnalytics(
@@ -25,5 +24,6 @@ public record RoomAnalytics(
         int sampleSize,
         Correlation noiseVsOccupancy,
         Trend thermalDrift,
+        Correlation indoorVsOutdoor,
         List<OffsetDateTime> noiseAnomalies
 ) {}

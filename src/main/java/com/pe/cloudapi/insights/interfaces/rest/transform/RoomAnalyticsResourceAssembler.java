@@ -1,6 +1,6 @@
 package com.pe.cloudapi.insights.interfaces.rest.transform;
 
-import com.pe.cloudapi.insights.domain.model.results.RoomAnalytics;
+import com.pe.cloudapi.insights.domain.model.valueobjects.RoomAnalytics;
 import com.pe.cloudapi.insights.domain.model.valueobjects.Correlation;
 import com.pe.cloudapi.insights.domain.model.valueobjects.Trend;
 import com.pe.cloudapi.insights.interfaces.rest.resources.RoomAnalyticsResource;
@@ -20,6 +20,7 @@ public class RoomAnalyticsResourceAssembler {
                 analytics.sampleSize(),
                 toResource(analytics.noiseVsOccupancy()),
                 toResource(analytics.thermalDrift()),
+                toResource(analytics.indoorVsOutdoor()),
                 analytics.noiseAnomalies());
     }
 

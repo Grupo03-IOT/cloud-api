@@ -1,6 +1,6 @@
 package com.pe.cloudapi.insights.interfaces.rest;
 
-import com.pe.cloudapi.insights.application.internal.ports.in.AnalyzeRoom;
+import com.pe.cloudapi.insights.application.internal.ports.in.AnalyzeRoomUseCase;
 import com.pe.cloudapi.insights.domain.model.queries.AnalyzeRoomQuery;
 import com.pe.cloudapi.insights.interfaces.rest.resources.RoomAnalyticsResource;
 import com.pe.cloudapi.insights.interfaces.rest.transform.RoomAnalyticsResourceAssembler;
@@ -34,7 +34,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RoomAnalyticsController {
 
-    private final AnalyzeRoom analyzeRoomUseCase;
+    private final AnalyzeRoomUseCase analyzeRoomUseCase;
     private final RoomAnalyticsResourceAssembler assembler;
 
     @GetMapping("/{roomId}")

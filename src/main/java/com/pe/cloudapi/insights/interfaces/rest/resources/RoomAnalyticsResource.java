@@ -25,6 +25,10 @@ public record RoomAnalyticsResource(
         @Schema(description = "Cuánto se calienta la sala por hora")
         TrendResource thermalDrift,
 
+        @Schema(description = "Si la sala sigue a la temperatura de la calle. "
+                + "Alta correlación significa mal aislamiento térmico")
+        CorrelationResource indoorVsOutdoor,
+
         @Schema(description = "Minutos con picos de ruido fuera de lo normal para esta sala")
         List<OffsetDateTime> noiseAnomalies
 

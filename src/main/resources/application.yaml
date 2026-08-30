@@ -33,8 +33,6 @@ spring:
             connect-timeout: 3000
             read-timeout: 5000
             logger-level: basic
-            # Comillas obligatorias: dentro de [...] la llave de ${...} abriria
-            # un mapa y el YAML no parsea.
             default-query-parameters:
               units: ["metric"]
               appid: ["${OPENWEATHER_API_KEY:}"]

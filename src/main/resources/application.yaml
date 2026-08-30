@@ -3,8 +3,6 @@ spring:
     name: cloud-api
 
   datasource:
-    # Por defecto apunta al Postgres de compose.yaml.
-    # En despliegue se sobreescribe con variables de entorno.
     url: ${DB_URL:jdbc:postgresql://localhost:5433/comfort}
     username: ${DB_USER:comfort}
     password: ${DB_PASSWORD:comfort}
@@ -26,6 +24,20 @@ spring:
     default-property-inclusion: non_null
     property-naming-strategy: SNAKE_CASE
 
+  cloud:
+    openfeign:
+      client:
+        config:
+          openweather:
+            url: https://api.openweathermap.org/data/2.5
+            connect-timeout: 3000
+            read-timeout: 5000
+            logger-level: basic
+            default-query-parameters:
+              units: [metric]
+              appid: [${OPENWEATHER_API_KEY:}]
+              id: [${OPENWEATHER_CITY_ID:3936456}]   # Lima, PE
+
 server:
   port: ${PORT:8080}
 
@@ -41,11 +53,6 @@ management:
     web:
       exposure:
         include: health,info
-
-openweather:
-  base-url: https://api.openweathermap.org/data/2.5
-  api-key: ${OPENWEATHER_API_KEY:}
-  city-id: ${OPENWEATHER_CITY_ID:3936456}   # Lima, PE
 
 logging:
   level:

@@ -33,10 +33,12 @@ spring:
             connect-timeout: 3000
             read-timeout: 5000
             logger-level: basic
+            # Comillas obligatorias: dentro de [...] la llave de ${...} abriria
+            # un mapa y el YAML no parsea.
             default-query-parameters:
-              units: [metric]
-              appid: [${OPENWEATHER_API_KEY:}]
-              id: [${OPENWEATHER_CITY_ID:3936456}]   # Lima, PE
+              units: ["metric"]
+              appid: ["${OPENWEATHER_API_KEY:}"]
+              id: ["${OPENWEATHER_CITY_ID:3936456}"]   # Lima, PE
 
 server:
   port: ${PORT:8080}

@@ -8,6 +8,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import tools.jackson.core.JacksonException;
 
 import java.util.List;
@@ -135,6 +139,49 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * La ruta no corresponde a ningún endpoint.
+     *
+     * <p>Los cuatro manejadores siguientes atrapan excepciones del propio
+     * framework. Sin ellos caerían en el cajón de sastre de abajo y saldrían
+     * como <strong>500</strong>, que para el Edge significa «vuelve a
+     * intentarlo»: se quedaría reintentando en bucle un fallo suyo que no va a
+     * arreglarse nunca.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResource(NoResourceFoundException ex,
+                                                          HttpServletRequest request) {
+        return transport(TransportError.ENDPOINT_NOT_FOUND, request,
+                ex.getHttpMethod(), ex.getResourcePath());
+    }
+
+    /** La ruta existe, pero no admite ese verbo. */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotSupported(
+            HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
+        return transport(TransportError.METHOD_NOT_ALLOWED, request, ex.getMethod());
+    }
+
+    /**
+     * El cuerpo viene en un tipo de contenido que no sabemos leer.
+     *
+     * <p>Puede llegar sin ninguno, y entonces el mensaje diría «'null' is not
+     * supported», que confunde: el problema es que falta, no que valga nulo.
+     */
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMediaTypeNotSupported(
+            HttpMediaTypeNotSupportedException ex, HttpServletRequest request) {
+        Object type = ex.getContentType() == null ? "none" : ex.getContentType();
+        return transport(TransportError.UNSUPPORTED_MEDIA_TYPE, request, type);
+    }
+
+    /** El cliente pide en su {@code Accept} algo que no sabemos producir. */
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<ErrorResponse> handleMediaTypeNotAcceptable(
+            HttpMediaTypeNotAcceptableException ex, HttpServletRequest request) {
+        return transport(TransportError.NOT_ACCEPTABLE, request);
+    }
+
+    /**
      * Cualquier otro fallo. Se registra completo porque, a diferencia de los
      * anteriores, aquí el problema es nuestro y el Edge va a reintentar.
      */
@@ -209,6 +256,16 @@ public class GlobalExceptionHandler {
      */
     private static String constraintOf(String[] codes) {
         return codes == null || codes.length == 0 ? "" : codes[codes.length - 1];
+    }
+
+    /**
+     * Respuesta a un error de transporte: trae su propio estado, así que no pasa
+     * por {@link ErrorKindHttpMapper}.
+     */
+    private ResponseEntity<ErrorResponse> transport(TransportError error,
+                                                    HttpServletRequest request,
+                                                    Object... args) {
+        return ErrorResponse.of(error.status(), error.code(), error.message(args), request);
     }
 
     private ResponseEntity<ErrorResponse> respond(ErrorCatalog error, String message,

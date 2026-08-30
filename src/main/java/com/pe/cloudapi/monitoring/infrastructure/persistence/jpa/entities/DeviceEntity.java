@@ -23,7 +23,7 @@ import java.util.UUID;
  * alguien decide y no se deduce del silencio.
  */
 @Entity
-@Table(name = "device")
+@Table(name = "device", schema = "monitoring")
 @Getter
 @Setter
 @NoArgsConstructor

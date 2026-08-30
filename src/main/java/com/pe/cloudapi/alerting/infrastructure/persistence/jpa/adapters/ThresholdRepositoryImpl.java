@@ -2,7 +2,7 @@ package com.pe.cloudapi.alerting.infrastructure.persistence.jpa.adapters;
 
 import com.pe.cloudapi.alerting.domain.model.entities.Threshold;
 import com.pe.cloudapi.alerting.domain.model.valueobjects.ThresholdMetric;
-import com.pe.cloudapi.alerting.domain.repositories.ThresholdRepository;
+import com.pe.cloudapi.alerting.domain.ports.out.ThresholdRepository;
 import com.pe.cloudapi.alerting.infrastructure.persistence.jpa.entities.ThresholdEntity;
 import com.pe.cloudapi.alerting.infrastructure.persistence.jpa.mappers.ThresholdMapper;
 import com.pe.cloudapi.alerting.infrastructure.persistence.jpa.repositories.ThresholdJpaRepository;
@@ -19,7 +19,7 @@ import java.util.UUID;
  */
 @Component
 @RequiredArgsConstructor
-public class ThresholdRepositoryAdapter implements ThresholdRepository {
+public class ThresholdRepositoryImpl implements ThresholdRepository {
 
     private final ThresholdJpaRepository jpa;
     private final ThresholdMapper mapper;

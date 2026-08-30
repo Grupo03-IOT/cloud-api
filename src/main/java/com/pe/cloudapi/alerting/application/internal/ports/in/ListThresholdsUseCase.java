@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Puerto de entrada: listar los umbrales activos de un tipo de sala.
  */
-public interface ListThresholds {
+public interface ListThresholdsUseCase {
 
     List<Threshold> execute(ListThresholdsQuery query);
 }

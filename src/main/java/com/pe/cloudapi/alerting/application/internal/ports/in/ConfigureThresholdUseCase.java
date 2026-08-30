@@ -8,7 +8,7 @@ import com.pe.cloudapi.alerting.domain.model.entities.Threshold;
  *
  * <p>Es idempotente: si ya existe uno para esa combinación, se reajusta.
  */
-public interface ConfigureThreshold {
+public interface ConfigureThresholdUseCase {
 
     Threshold execute(ConfigureThresholdCommand command);
 }

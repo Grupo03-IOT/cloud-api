@@ -1,9 +1,9 @@
 package com.pe.cloudapi.alerting.application.internal.usecases;
 
-import com.pe.cloudapi.alerting.application.internal.ports.in.ConfigureThreshold;
+import com.pe.cloudapi.alerting.application.internal.ports.in.ConfigureThresholdUseCase;
 import com.pe.cloudapi.alerting.domain.model.commands.ConfigureThresholdCommand;
 import com.pe.cloudapi.alerting.domain.model.entities.Threshold;
-import com.pe.cloudapi.alerting.domain.repositories.ThresholdRepository;
+import com.pe.cloudapi.alerting.domain.ports.out.ThresholdRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class ConfigureThresholdUseCase implements ConfigureThreshold {
+public class ConfigureThresholdUseCaseImpl implements ConfigureThresholdUseCase {
 
     private final ThresholdRepository thresholds;
 

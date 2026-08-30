@@ -1,4 +1,4 @@
-package com.pe.cloudapi.alerting.domain.repositories;
+package com.pe.cloudapi.alerting.domain.ports.out;
 
 import com.pe.cloudapi.alerting.domain.model.entities.Threshold;
 import com.pe.cloudapi.alerting.domain.model.valueobjects.ThresholdMetric;

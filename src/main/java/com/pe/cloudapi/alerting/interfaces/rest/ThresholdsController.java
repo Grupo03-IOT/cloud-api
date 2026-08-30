@@ -1,7 +1,7 @@
 package com.pe.cloudapi.alerting.interfaces.rest;
 
-import com.pe.cloudapi.alerting.application.internal.ports.in.ConfigureThreshold;
-import com.pe.cloudapi.alerting.application.internal.ports.in.ListThresholds;
+import com.pe.cloudapi.alerting.application.internal.ports.in.ConfigureThresholdUseCase;
+import com.pe.cloudapi.alerting.application.internal.ports.in.ListThresholdsUseCase;
 import com.pe.cloudapi.alerting.domain.model.queries.ListThresholdsQuery;
 import com.pe.cloudapi.alerting.interfaces.rest.resources.ConfigureThresholdResource;
 import com.pe.cloudapi.alerting.interfaces.rest.resources.ThresholdResource;
@@ -36,8 +36,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ThresholdsController {
 
-    private final ConfigureThreshold configureThresholdUseCase;
-    private final ListThresholds listThresholdsUseCase;
+    private final ConfigureThresholdUseCase configureThresholdUseCase;
+    private final ListThresholdsUseCase listThresholdsUseCase;
     private final ThresholdResourceAssembler assembler;
 
     /**

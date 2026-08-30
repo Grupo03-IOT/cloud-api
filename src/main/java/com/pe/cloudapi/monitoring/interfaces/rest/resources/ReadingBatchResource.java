@@ -15,7 +15,7 @@ import java.util.List;
 @Schema(description = "Lote de lecturas subido por el Edge")
 public record ReadingBatchResource(
 
-        @NotEmpty(message = "el lote no puede venir vacío")
+        @NotEmpty(message = "MONITORING_READING_BATCH_EMPTY")
         @Valid
         List<ReadingResource> readings
 

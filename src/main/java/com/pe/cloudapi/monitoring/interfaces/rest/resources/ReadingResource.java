@@ -1,8 +1,5 @@
 package com.pe.cloudapi.monitoring.interfaces.rest.resources;
 
-import com.pe.cloudapi.monitoring.domain.model.entities.Device;
-import com.pe.cloudapi.monitoring.domain.model.valueobjects.Climate;
-import com.pe.cloudapi.monitoring.domain.model.valueobjects.Occupancy;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -36,7 +33,7 @@ public record ReadingResource(
                 example = "2026-08-26T11:59:00Z")
         OffsetDateTime ts,
 
-        @NotNull
+        @NotNull(message = "MONITORING_READING_PERIOD_REQUIRED")
         @Positive
         @Schema(description = "Duración del periodo en segundos. Obligatorio: entra "
                 + "en el cálculo de los agregados, así que asumirlo falsearía las "

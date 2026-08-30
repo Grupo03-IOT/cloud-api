@@ -2,36 +2,40 @@ package com.pe.cloudapi.shared.interfaces.rest;
 
 import com.pe.cloudapi.shared.domain.model.errors.DomainException;
 import com.pe.cloudapi.shared.domain.model.errors.ErrorCatalog;
+import com.pe.cloudapi.shared.interfaces.rest.ErrorResponse.ErrorDetail;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingRequestValueException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import tools.jackson.core.JacksonException;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Convierte las excepciones en respuestas con un formato uniforme.
- *
- * <p>Todo error sale con un código de catálogo, venga del dominio o del
- * transporte. Aquí no se inventa ninguno: este manejador solo elige qué entrada
- * corresponde y la traduce a HTTP.
- *
- * <p>Importa especialmente para la ingesta: el Edge reintenta el lote entero
- * ante cualquier respuesta que no sea 2xx, así que un error mal clasificado
- * puede dejarlo reintentando en bucle. Los errores de quien llama salen como
- * 4xx —reintentarlos no arreglará nada— y solo los fallos nuestros como 500,
- * donde reintentar sí tiene sentido.
  */
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private static final Pattern CAMEL_HUMP = Pattern.compile("([a-z0-9])([A-Z])");
+
+    private final ErrorCatalogs catalogs;
 
     /**
      * Error de negocio con entrada de catálogo. Es el camino normal: el código
@@ -40,26 +44,64 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<ErrorResponse> handleDomain(DomainException ex,
                                                       HttpServletRequest request) {
-        return respond(ex.getError(), ex.getMessage(), request, List.of());
+        return respond(ex.getError(), ex.getMessage(), request);
     }
 
-    /** Falla la validación de los recursos: la petición está mal formada. */
+    /**
+     * Falla la validación del cuerpo: sale un detalle por campo incumplidor.
+     *
+     * <p>Varios a la vez, a propósito. Devolver solo el primero obliga a quien
+     * integra a arreglar, reenviar y descubrir el siguiente.
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex,
                                                           HttpServletRequest request) {
-        List<String> details = ex.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+        List<ErrorDetail> errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(this::toDetail)
                 .toList();
-        return respond(ApiError.VALIDATION_FAILED,
-                ApiError.VALIDATION_FAILED.messageTemplate(), request, details);
+        return respondWith(ApiError.VALIDATION_FAILED,
+                ApiError.VALIDATION_FAILED.messageTemplate(), request, errors);
     }
 
-    /** JSON ilegible o tipos incompatibles en el cuerpo. */
+    /**
+     * Falla la validación de un parámetro: {@code @Positive} en un
+     * {@code @RequestParam}, por ejemplo.
+     *
+     * <p>Sin este manejador acabaría en el genérico y saldría un 500 por un
+     * error de quien llama, con el Edge reintentando en bucle.
+     */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorResponse> handleParameterValidation(
+            HandlerMethodValidationException ex, HttpServletRequest request) {
+
+        List<ErrorDetail> errors = ex.getParameterValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream()
+                        .map(error -> ErrorDetail.of(
+                                result.getMethodParameter().getParameterName(),
+                                resolve(error.getDefaultMessage(),
+                                        constraintOf(error.getCodes())))))
+                .toList();
+        return respondWith(ApiError.VALIDATION_FAILED,
+                ApiError.VALIDATION_FAILED.messageTemplate(), request, errors);
+    }
+
+    /**
+     * JSON ilegible o un valor que no encaja con su tipo.
+     *
+     * <p>Jackson sabe en qué campo se atascó, así que se señala en vez de
+     * responder solo «no se pudo leer el cuerpo» —que es lo mismo que se
+     * respondería ante un JSON truncado, y no son el mismo problema—. Su
+     * mensaje, en cambio, no se propaga: nombra clases de Java y eso no es
+     * asunto de quien llama.
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleUnreadable(HttpMessageNotReadableException ex,
                                                           HttpServletRequest request) {
-        return respond(ApiError.MALFORMED_REQUEST,
-                ApiError.MALFORMED_REQUEST.messageTemplate(), request, List.of());
+        return locate(ex)
+                .map(error -> respondWith(ApiError.MALFORMED_REQUEST,
+                        ApiError.MALFORMED_REQUEST.messageTemplate(), request, List.of(error)))
+                .orElseGet(() -> respond(ApiError.MALFORMED_REQUEST,
+                        ApiError.MALFORMED_REQUEST.messageTemplate(), request));
     }
 
     /**
@@ -68,10 +110,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingRequestValueException.class)
     public ResponseEntity<ErrorResponse> handleMissingValue(MissingRequestValueException ex,
                                                             HttpServletRequest request) {
-        String name = ex instanceof MissingServletRequestParameterException missing
-                ? missing.getParameterName() : "unknown";
+        String name = switch (ex) {
+            case MissingServletRequestParameterException missing -> missing.getParameterName();
+            case MissingPathVariableException missing -> missing.getVariableName();
+            default -> "unknown";
+        };
         DomainException error = ApiError.MISSING_PARAMETER.with(name);
-        return respond(error.getError(), error.getMessage(), request, List.of());
+        return respondWith(error.getError(), error.getMessage(), request,
+                List.of(new ErrorDetail(name, error.getError().code(), error.getMessage())));
     }
 
     /**
@@ -84,7 +130,8 @@ public class GlobalExceptionHandler {
         String expected = ex.getRequiredType() == null
                 ? "the expected type" : ex.getRequiredType().getSimpleName();
         DomainException error = ApiError.INVALID_PARAMETER.with(ex.getName(), expected);
-        return respond(error.getError(), error.getMessage(), request, List.of());
+        return respondWith(error.getError(), error.getMessage(), request,
+                List.of(new ErrorDetail(ex.getName(), error.getError().code(), error.getMessage())));
     }
 
     /**
@@ -96,17 +143,84 @@ public class GlobalExceptionHandler {
                                                           HttpServletRequest request) {
         log.error("Fallo no controlado en {}", request.getRequestURI(), ex);
         return respond(ApiError.INTERNAL_ERROR,
-                ApiError.INTERNAL_ERROR.messageTemplate(), request, List.of());
+                ApiError.INTERNAL_ERROR.messageTemplate(), request);
+    }
+
+    /** El incumplimiento de un campo del cuerpo. */
+    private ErrorDetail toDetail(FieldError error) {
+        return ErrorDetail.of(
+                asWireName(error.getField()),
+                resolve(error.getDefaultMessage(), error.getCode()));
+    }
+
+    /**
+     * La entrada de catálogo que corresponde a un incumplimiento.
+     *
+     * <p>Dos caminos, un único resultado. Si la anotación llevaba un código
+     * —{@code @NotNull(message = "MONITORING_READING_PERIOD_REQUIRED")}— el
+     * registro lo encuentra. Si no llevaba nada, se busca la entrada de la
+     * restricción que falló: {@code @NotBlank} da {@link ApiError#NOT_BLANK}.
+     *
+     * <p>La pregunta es <em>«¿está declarado?»</em> y no <em>«¿parece un
+     * código?»</em>. Antes se decidía por la forma del texto —solo
+     * mayúsculas— y eso confundía un mensaje escrito en mayúsculas con un
+     * código inexistente. Ahora manda el catálogo: <strong>lo que no está
+     * declarado no puede salir</strong>.
+     */
+    private ErrorCatalog resolve(String message, String constraint) {
+        return catalogs.find(message == null ? "" : message)
+                .orElseGet(() -> ApiError.forConstraint(constraint));
+    }
+
+    /**
+     * Busca en la cadena de causas el campo donde Jackson se atascó.
+     *
+     * @return el sitio, o vacío si el JSON no llegó a tener estructura
+     */
+    private static java.util.Optional<ErrorDetail> locate(Throwable ex) {
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+            if (cause instanceof JacksonException jackson && !jackson.getPath().isEmpty()) {
+                return java.util.Optional.of(
+                        ErrorDetail.of(asWireName(pathOf(jackson)), ApiError.MALFORMED_FIELD));
+            }
+        }
+        return java.util.Optional.empty();
+    }
+
+    /** La ruta de Jackson en la misma notación que usa la validación. */
+    private static String pathOf(JacksonException ex) {
+        return ex.getPath().stream()
+                .map(step -> step.getPropertyName() == null
+                        ? "[" + step.getIndex() + "]"
+                        : "." + step.getPropertyName())
+                .collect(Collectors.joining())
+                .replaceFirst("^\\.", "");
+    }
+
+    /** {@code readings[0].roomId} → {@code readings[0].room_id}. */
+    private static String asWireName(String field) {
+        return CAMEL_HUMP.matcher(field).replaceAll("$1_$2").toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * El nombre de la restricción, de la lista que Spring ordena de más
+     * específica a más general: {@code Positive.periodS}, {@code Positive.int},
+     * {@code Positive}. La última es la que sirve para buscar en el catálogo.
+     */
+    private static String constraintOf(String[] codes) {
+        return codes == null || codes.length == 0 ? "" : codes[codes.length - 1];
     }
 
     private ResponseEntity<ErrorResponse> respond(ErrorCatalog error, String message,
-                                                  HttpServletRequest request,
-                                                  List<String> details) {
-        return ErrorResponse.build(
-                ErrorKindHttpMapper.toStatus(error.kind()),
-                error.code(),
-                message,
-                request,
-                details);
+                                                  HttpServletRequest request) {
+        return ErrorResponse.of(
+                ErrorKindHttpMapper.toStatus(error.kind()), error.code(), message, request);
+    }
+
+    private ResponseEntity<ErrorResponse> respondWith(ErrorCatalog error, String message,
+                                                      HttpServletRequest request,
+                                                      List<ErrorDetail> errors) {
+        return ErrorResponse.withDetails(
+                ErrorKindHttpMapper.toStatus(error.kind()), error.code(), message, request, errors);
     }
 }

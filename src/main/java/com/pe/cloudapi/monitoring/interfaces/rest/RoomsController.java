@@ -1,11 +1,11 @@
 package com.pe.cloudapi.monitoring.interfaces.rest;
 
-import com.pe.cloudapi.monitoring.application.internal.ports.in.ClassifyRoom;
-import com.pe.cloudapi.monitoring.application.internal.ports.in.GetLatestReading;
-import com.pe.cloudapi.monitoring.application.internal.ports.in.GetReadingsInRange;
-import com.pe.cloudapi.monitoring.application.internal.ports.in.GetRoom;
-import com.pe.cloudapi.monitoring.application.internal.ports.in.ListRooms;
-import com.pe.cloudapi.monitoring.application.internal.ports.in.ListUnclassifiedRooms;
+import com.pe.cloudapi.monitoring.application.internal.ports.in.ClassifyRoomUseCase;
+import com.pe.cloudapi.monitoring.application.internal.ports.in.GetLatestReadingUseCase;
+import com.pe.cloudapi.monitoring.application.internal.ports.in.GetReadingsInRangeUseCase;
+import com.pe.cloudapi.monitoring.application.internal.ports.in.GetRoomUseCase;
+import com.pe.cloudapi.monitoring.application.internal.ports.in.ListRoomsUseCase;
+import com.pe.cloudapi.monitoring.application.internal.ports.in.ListUnclassifiedRoomsUseCase;
 import com.pe.cloudapi.monitoring.application.internal.results.RoomReadings;
 import com.pe.cloudapi.monitoring.domain.model.aggregates.Room;
 import com.pe.cloudapi.monitoring.domain.model.commands.ClassifyRoomCommand;
@@ -54,12 +54,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RoomsController {
 
-    private final ListRooms listRoomsUseCase;
-    private final ListUnclassifiedRooms listUnclassifiedRoomsUseCase;
-    private final GetRoom getRoomUseCase;
-    private final GetReadingsInRange getReadingsInRangeUseCase;
-    private final GetLatestReading getLatestReadingUseCase;
-    private final ClassifyRoom classifyRoomUseCase;
+    private final ListRoomsUseCase listRoomsUseCase;
+    private final ListUnclassifiedRoomsUseCase listUnclassifiedRoomsUseCase;
+    private final GetRoomUseCase getRoomUseCase;
+    private final GetReadingsInRangeUseCase getReadingsInRangeUseCase;
+    private final GetLatestReadingUseCase getLatestReadingUseCase;
+    private final ClassifyRoomUseCase classifyRoomUseCase;
     private final RoomResourceAssembler roomAssembler;
     private final ReadingResourceAssemblerFromDomain readingAssembler;
 

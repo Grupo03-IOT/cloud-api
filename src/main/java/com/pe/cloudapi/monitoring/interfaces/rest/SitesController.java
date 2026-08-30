@@ -1,9 +1,9 @@
 package com.pe.cloudapi.monitoring.interfaces.rest;
 
-import com.pe.cloudapi.monitoring.application.internal.ports.in.CreateRoomType;
-import com.pe.cloudapi.monitoring.application.internal.ports.in.CreateSite;
-import com.pe.cloudapi.monitoring.application.internal.ports.in.ListRoomTypes;
-import com.pe.cloudapi.monitoring.application.internal.ports.in.ListSites;
+import com.pe.cloudapi.monitoring.application.internal.ports.in.CreateRoomTypeUseCase;
+import com.pe.cloudapi.monitoring.application.internal.ports.in.CreateSiteUseCase;
+import com.pe.cloudapi.monitoring.application.internal.ports.in.ListRoomTypesUseCase;
+import com.pe.cloudapi.monitoring.application.internal.ports.in.ListSitesUseCase;
 import com.pe.cloudapi.monitoring.domain.model.queries.ListRoomTypesQuery;
 import com.pe.cloudapi.monitoring.interfaces.rest.resources.CreateRoomTypeResource;
 import com.pe.cloudapi.monitoring.interfaces.rest.resources.CreateSiteResource;
@@ -42,10 +42,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SitesController {
 
-    private final CreateSite createSiteUseCase;
-    private final ListSites listSitesUseCase;
-    private final CreateRoomType createRoomTypeUseCase;
-    private final ListRoomTypes listRoomTypesUseCase;
+    private final CreateSiteUseCase createSiteUseCase;
+    private final ListSitesUseCase listSitesUseCase;
+    private final CreateRoomTypeUseCase createRoomTypeUseCase;
+    private final ListRoomTypesUseCase listRoomTypesUseCase;
     private final SiteResourceAssembler siteAssembler;
     private final RoomTypeResourceAssembler roomTypeAssembler;
 

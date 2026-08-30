@@ -1,6 +1,6 @@
 package com.pe.cloudapi.monitoring.interfaces.rest;
 
-import com.pe.cloudapi.monitoring.application.internal.ports.in.IngestReadings;
+import com.pe.cloudapi.monitoring.application.internal.ports.in.IngestReadingsUseCase;
 import com.pe.cloudapi.monitoring.interfaces.rest.resources.IngestResultResource;
 import com.pe.cloudapi.monitoring.interfaces.rest.resources.ReadingBatchResource;
 import com.pe.cloudapi.monitoring.interfaces.rest.transform.ReadingResourceAssembler;
@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ReadingsController {
 
-    private final IngestReadings ingestReadings;
+    private final IngestReadingsUseCase ingestReadingsUseCase;
     private final ReadingResourceAssembler assembler;
 
     /**
@@ -59,7 +59,7 @@ public class ReadingsController {
     })
     public ResponseEntity<IngestResultResource> ingest(
             @Valid @RequestBody ReadingBatchResource batch) {
-        var result = ingestReadings.execute(assembler.toCommand(batch.readings()));
+        var result = ingestReadingsUseCase.execute(assembler.toCommand(batch.readings()));
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(assembler.toResource(result));
     }

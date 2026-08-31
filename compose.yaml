@@ -20,6 +20,24 @@ services:
       retries: 12
       start_period: 10s
 
+  api:
+    build: .
+    container_name: comfort-api
+    profiles: ["app"]
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/comfort
+      DB_USER: comfort
+      DB_PASSWORD: comfort
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-}
+      OPENWEATHER_CITY_ID: ${OPENWEATHER_CITY_ID:-3936456}
+      TZ: UTC
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: comfort-pgadmin

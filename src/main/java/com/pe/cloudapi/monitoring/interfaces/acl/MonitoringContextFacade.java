@@ -1,6 +1,9 @@
 package com.pe.cloudapi.monitoring.interfaces.acl;
 
 import com.pe.cloudapi.monitoring.application.internal.results.RoomReadings;
+import com.pe.cloudapi.monitoring.application.internal.results.RoomSnapshot;
+
+import java.util.List;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -19,4 +22,13 @@ public interface MonitoringContextFacade {
      *         {@code MONITORING_ROOM_NOT_FOUND} si la sala no existe — nunca una lista vacía
      */
     RoomReadings readingsInRange(UUID roomId, OffsetDateTime from, OffsetDateTime to);
+
+    /**
+     * Todas las salas conocidas, con su tipo si ya se clasificaron.
+     *
+     * <p>Las sin clasificar salen igual: quien las consuma decide qué hacer con
+     * ellas, y esconderlas haría que una sala recién descubierta pareciera no
+     * existir.
+     */
+    List<RoomSnapshot> rooms();
 }

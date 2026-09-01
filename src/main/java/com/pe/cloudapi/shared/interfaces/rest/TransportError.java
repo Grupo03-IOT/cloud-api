@@ -19,7 +19,13 @@ public enum TransportError {
             "The content type '%s' is not supported"),
 
     NOT_ACCEPTABLE(HttpStatus.NOT_ACCEPTABLE,
-            "This endpoint cannot produce any of the requested media types");
+            "This endpoint cannot produce any of the requested media types"),
+
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED,
+            "This endpoint requires a valid credential"),
+
+    FORBIDDEN(HttpStatus.FORBIDDEN,
+            "This credential does not have permission for this endpoint");
 
     private static final String PREFIX = "API";
 

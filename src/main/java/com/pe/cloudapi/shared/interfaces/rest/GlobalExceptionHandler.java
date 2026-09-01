@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -136,6 +138,25 @@ public class GlobalExceptionHandler {
         DomainException error = ApiError.INVALID_PARAMETER.with(ex.getName(), expected);
         return respondWith(error.getError(), error.getMessage(), request,
                 List.of(new ErrorDetail(ex.getName(), error.getError().code(), error.getMessage())));
+    }
+
+    /**
+     * Falta la credencial o no es válida.
+     *
+     * <p>Llega por dos caminos: se lo pasa {@link UnauthorizedEntryPoint} cuando
+     * la seguridad rechaza antes del controlador, y llega solo cuando la lanza
+     * un {@code @PreAuthorize}. Sin este manejador, el segundo caso caería en el
+     * cajón de sastre y <strong>un 401 saldría como 500</strong>.
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthenticated(HttpServletRequest request) {
+        return transport(TransportError.UNAUTHORIZED, request);
+    }
+
+    /** La credencial es válida y no alcanza. */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(HttpServletRequest request) {
+        return transport(TransportError.FORBIDDEN, request);
     }
 
     /**

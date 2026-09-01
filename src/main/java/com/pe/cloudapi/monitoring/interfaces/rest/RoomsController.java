@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
@@ -73,6 +74,7 @@ public class RoomsController {
                     Returns every active room together with a summary of its most \
                     recent reading, including how many seconds old that reading is. \
                     Consumers decide what counts as too old for their use case.""")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MEMBER')")
     public List<RoomResource> listRooms() {
         return listRoomsUseCase.execute().stream()
                 .map(roomAssembler::toResource)
@@ -84,6 +86,7 @@ public class RoomsController {
      */
     @GetMapping("/unclassified")
     @Operation(summary = "List auto-registered rooms awaiting classification")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MEMBER')")
     public List<RoomResource> listUnclassified() {
         return listUnclassifiedRoomsUseCase.execute().stream()
                 .map(roomAssembler::toResource)
@@ -96,6 +99,7 @@ public class RoomsController {
             @ApiResponse(responseCode = "200", description = "Room found"),
             @ApiResponse(responseCode = "404", description = "Room does not exist")
     })
+    @PreAuthorize("hasAnyRole('ADMIN', 'MEMBER')")
     public RoomResource getRoom(@PathVariable UUID roomId) {
         return roomAssembler.toResource(getRoomUseCase.execute(new GetRoomQuery(roomId)));
     }
@@ -117,6 +121,7 @@ public class RoomsController {
                     description = "Missing, inverted or invalid range"),
             @ApiResponse(responseCode = "404", description = "Room does not exist")
     })
+    @PreAuthorize("hasAnyRole('ADMIN', 'MEMBER')")
     public List<ReadingResource> getReadings(
             @PathVariable UUID roomId,
 
@@ -139,6 +144,7 @@ public class RoomsController {
             @ApiResponse(responseCode = "404", description = "Room does not exist, "
                     + "or has not reported yet")
     })
+    @PreAuthorize("hasAnyRole('ADMIN', 'MEMBER')")
     public ReadingResource getLatestReading(@PathVariable UUID roomId) {
         return toResources(getLatestReadingUseCase.execute(new GetLatestReadingQuery(roomId))).getFirst();
     }
@@ -157,6 +163,7 @@ public class RoomsController {
             @ApiResponse(responseCode = "422",
                     description = "The room type belongs to a different site")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public RoomResource classifyRoom(@PathVariable UUID roomId,
                                      @Valid @RequestBody ClassifyRoomResource resource) {
         return roomAssembler.toResource(classifyRoomUseCase.execute(

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -57,6 +58,7 @@ public class ReadingsController {
             @ApiResponse(responseCode = "202", description = "Batch accepted"),
             @ApiResponse(responseCode = "400", description = "Malformed or invalid batch")
     })
+    @PreAuthorize("hasAuthority('SCOPE_readings:write')")
     public ResponseEntity<IngestResultResource> ingest(
             @Valid @RequestBody ReadingBatchResource batch) {
         var result = ingestReadingsUseCase.execute(assembler.toCommand(batch.readings()));

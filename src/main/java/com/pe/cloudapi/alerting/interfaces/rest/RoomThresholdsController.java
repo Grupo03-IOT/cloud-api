@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,6 +46,7 @@ public class RoomThresholdsController {
                     A room with no thresholds is either unclassified or its type \
                     has none configured; the caller applies its own defaults.""")
     @ApiResponses(@ApiResponse(responseCode = "200", description = "Thresholds per room"))
+    @PreAuthorize("hasAuthority('SCOPE_thresholds:read')")
     public List<RoomThresholdsResource> list() {
         return resolveRoomThresholds.execute().stream()
                 .map(room -> new RoomThresholdsResource(

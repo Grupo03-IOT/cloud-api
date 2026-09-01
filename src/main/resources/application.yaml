@@ -34,9 +34,9 @@ spring:
             read-timeout: 5000
             logger-level: basic
             default-query-parameters:
-              units: [metric]
-              appid: [${OPENWEATHER_API_KEY:}]
-              id: [${OPENWEATHER_CITY_ID:3936456}]   # Lima, PE
+              units: ["metric"]
+              appid: ["${OPENWEATHER_API_KEY:}"]
+              id: ["${OPENWEATHER_CITY_ID:3936456}"]   # Lima, PE
 
 server:
   port: ${PORT:8080}
@@ -53,6 +53,13 @@ management:
     web:
       exposure:
         include: health,info
+
+app:
+  iam:
+    access-token-ttl: ${ACCESS_TOKEN_TTL:PT1H}
+    api-key-prefix: ${API_KEY_PREFIX:comfort_live_}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:}
 
 logging:
   level:

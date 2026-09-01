@@ -38,7 +38,13 @@ public enum MonitoringError implements ErrorCatalog {
             "The start of the range is after its end: %s > %s"),
 
     NO_SITE_AVAILABLE(ErrorKind.CONFLICT,
-            "No site is registered, so rooms cannot be attached to one");
+            "No site is registered, so rooms cannot be attached to one"),
+
+    READING_BATCH_EMPTY(ErrorKind.VALIDATION,
+            "A batch must carry at least one reading"),
+
+    READING_PERIOD_REQUIRED(ErrorKind.VALIDATION,
+            "The period is required: assuming it would skew the energy averages");
 
     private static final String PREFIX = "MONITORING";
 

@@ -37,3 +37,9 @@ out/
 .vscode/
 
 .env
+
+# Llaves. El repositorio es publico: una privada aqui es un incidente.
+*.pem
+*.key
+*.p12
+*.jks

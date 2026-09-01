@@ -9,6 +9,7 @@ import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.repositories.Si
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -42,6 +43,11 @@ public class SiteRepositoryImpl implements SiteRepository {
     @Override
     public Optional<Site> findByCode(String code) {
         return jpa.findByCode(code).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<Site> findAll() {
+        return jpa.findAllAlive().stream().map(mapper::toDomain).toList();
     }
 
     @Override

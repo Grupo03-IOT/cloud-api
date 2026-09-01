@@ -3,6 +3,8 @@ package com.pe.cloudapi.shared.interfaces.rest;
 import com.pe.cloudapi.shared.domain.model.errors.ErrorCatalog;
 import com.pe.cloudapi.shared.domain.model.errors.ErrorKind;
 
+import java.util.Map;
+
 /**
  * Catálogo de errores de transporte, comunes a toda la API.
  *
@@ -33,9 +35,59 @@ public enum ApiError implements ErrorCatalog {
      * que esta entrada es justamente la que cubre lo que no.
      */
     INTERNAL_ERROR(ErrorKind.INTERNAL,
-            "An unexpected error occurred");
+            "An unexpected error occurred"),
+
+    /**
+     * Un valor del cuerpo con un formato que su tipo no admite: una fecha que
+     * no es fecha, un número donde se esperaba texto.
+     */
+    MALFORMED_FIELD(ErrorKind.VALIDATION,
+            "The value has a format this field does not accept"),
+
+    NOT_BLANK(ErrorKind.VALIDATION,
+            "This field cannot be empty"),
+
+    NOT_NULL(ErrorKind.VALIDATION,
+            "This field is required"),
+
+    NOT_EMPTY(ErrorKind.VALIDATION,
+            "This must contain at least one element"),
+
+    INVALID_SIZE(ErrorKind.VALIDATION,
+            "This field's length is out of range"),
+
+    NOT_POSITIVE(ErrorKind.VALIDATION,
+            "This must be greater than zero"),
+
+    /** La restricción que falló todavía no tiene entrada propia. */
+    CONSTRAINT_VIOLATED(ErrorKind.VALIDATION,
+            "This field does not satisfy its constraint");
 
     private static final String PREFIX = "API";
+
+    /**
+     * Qué entrada corresponde a cada restricción de Jakarta.
+     *
+     * <p>Se declara aquí en vez de derivarse del nombre de la anotación para
+     * que <strong>ningún código salga al cliente sin estar escrito en un
+     * catálogo</strong>. Una anotación nueva sin su línea aquí no rompe nada:
+     * sale {@link #CONSTRAINT_VIOLATED}, que se ve en la respuesta y avisa de
+     * que falta añadirla.
+     */
+    private static final Map<String, ApiError> BY_CONSTRAINT = Map.of(
+            "NotBlank", NOT_BLANK,
+            "NotNull", NOT_NULL,
+            "NotEmpty", NOT_EMPTY,
+            "Size", INVALID_SIZE,
+            "Positive", NOT_POSITIVE);
+
+    /**
+     * @param constraint nombre simple de la anotación que falló, tal como lo
+     *                   entrega Spring: {@code NotBlank}, {@code Size}
+     */
+    public static ApiError forConstraint(String constraint) {
+        return BY_CONSTRAINT.getOrDefault(constraint, CONSTRAINT_VIOLATED);
+    }
 
     private final ErrorKind kind;
     private final String messageTemplate;

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,6 +21,19 @@ public interface SiteJpaRepository extends JpaRepository<SiteEntity, UUID> {
             WHERE s.code = :code AND s.deletedAt IS NULL
             """)
     Optional<SiteEntity> findByCode(String code);
+
+    /**
+     * Los locales vivos, del más antiguo al más reciente.
+     *
+     * <p>No es el {@code findAll} heredado de Spring Data: ese devolvería
+     * también los borrados.
+     */
+    @Query("""
+            SELECT s FROM SiteEntity s
+            WHERE s.deletedAt IS NULL
+            ORDER BY s.createdAt ASC
+            """)
+    List<SiteEntity> findAllAlive();
 
     /**
      * Local por defecto: el más antiguo que siga vivo. Mientras el producto

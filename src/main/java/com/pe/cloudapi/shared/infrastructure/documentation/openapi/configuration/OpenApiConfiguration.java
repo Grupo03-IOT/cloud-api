@@ -1,5 +1,8 @@
 package com.pe.cloudapi.shared.infrastructure.documentation.openapi.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import io.swagger.v3.core.jackson.ModelResolver;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -19,6 +22,12 @@ import java.util.List;
  */
 @Configuration
 public class OpenApiConfiguration {
+
+    @Bean
+    public ModelResolver modelResolver() {
+        return new ModelResolver(new ObjectMapper()
+                .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE));
+    }
 
     @Bean
     public OpenAPI cloudApiOpenApi() {

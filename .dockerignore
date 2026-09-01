@@ -1,0 +1,11 @@
+# Lo que no debe entrar en el contexto de build: hace la copia lenta y mete
+# artefactos de la maquina de quien compila.
+build/
+.gradle/
+.git/
+.idea/
+*.iml
+docs/
+compose.yaml
+README.md
+HELP.md

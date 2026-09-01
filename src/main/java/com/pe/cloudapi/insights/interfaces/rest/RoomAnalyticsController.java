@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
@@ -50,6 +51,7 @@ public class RoomAnalyticsController {
             @ApiResponse(responseCode = "400", description = "Missing or inverted range"),
             @ApiResponse(responseCode = "422", description = "Not enough data in the range")
     })
+    @PreAuthorize("hasAnyRole('ADMIN', 'MEMBER')")
     public RoomAnalyticsResource analyse(
             @PathVariable UUID roomId,
 

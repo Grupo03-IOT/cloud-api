@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,6 +55,7 @@ public class ThresholdsController {
             @ApiResponse(responseCode = "400",
                     description = "Unknown metric, or warning value not below the critical one")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public ThresholdResource configure(@PathVariable UUID roomTypeId,
                                        @PathVariable String metric,
                                        @Valid @RequestBody ConfigureThresholdResource resource) {
@@ -63,6 +65,7 @@ public class ThresholdsController {
 
     @GetMapping
     @Operation(summary = "List the enabled thresholds of a room type")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MEMBER')")
     public List<ThresholdResource> list(@PathVariable UUID roomTypeId) {
         return listThresholdsUseCase.execute(new ListThresholdsQuery(roomTypeId))
                 .stream().map(assembler::toResource).toList();

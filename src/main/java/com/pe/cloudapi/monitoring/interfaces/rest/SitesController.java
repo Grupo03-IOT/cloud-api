@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -56,6 +57,7 @@ public class SitesController {
             @ApiResponse(responseCode = "201", description = "Site created"),
             @ApiResponse(responseCode = "409", description = "The code is already used")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public SiteResource createSite(@Valid @RequestBody CreateSiteResource resource) {
         return siteAssembler.toResource(
                 createSiteUseCase.execute(siteAssembler.toCommand(resource)));
@@ -63,6 +65,7 @@ public class SitesController {
 
     @GetMapping
     @Operation(summary = "List sites")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MEMBER')")
     public List<SiteResource> listSites() {
         return listSitesUseCase.execute().stream().map(siteAssembler::toResource).toList();
     }
@@ -80,6 +83,7 @@ public class SitesController {
             @ApiResponse(responseCode = "404", description = "The site does not exist"),
             @ApiResponse(responseCode = "409", description = "The code is already used")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     public RoomTypeResource createRoomType(@PathVariable UUID siteId,
                                            @Valid @RequestBody CreateRoomTypeResource resource) {
         return roomTypeAssembler.toResource(
@@ -92,6 +96,7 @@ public class SitesController {
             @ApiResponse(responseCode = "200", description = "Room types returned"),
             @ApiResponse(responseCode = "404", description = "The site does not exist")
     })
+    @PreAuthorize("hasAnyRole('ADMIN', 'MEMBER')")
     public List<RoomTypeResource> listRoomTypes(@PathVariable UUID siteId) {
         return listRoomTypesUseCase.execute(new ListRoomTypesQuery(siteId))
                 .stream().map(roomTypeAssembler::toResource).toList();

@@ -26,7 +26,7 @@ CREATE TABLE iam.user_role (
 CREATE TABLE iam.api_credential (
     id         UUID         PRIMARY KEY,
     code       VARCHAR(64)  NOT NULL,
-    token_hash CHAR(64)     NOT NULL,
+    token_hash VARCHAR(64)  NOT NULL,
     active     BOOLEAN      NOT NULL DEFAULT TRUE,
 
     created_at TIMESTAMPTZ  NOT NULL,

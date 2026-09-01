@@ -1,10 +1,13 @@
 package com.pe.cloudapi;
 
+import com.pe.cloudapi.shared.infrastructure.configuration.BoundedContextBeanNameGenerator;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@SpringBootApplication
+
+@SpringBootApplication(nameGenerator = BoundedContextBeanNameGenerator.class)
 @EnableFeignClients
 public class CloudApiApplication {
 

@@ -2,7 +2,6 @@ package com.pe.cloudapi.shared.interfaces.rest;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -20,11 +19,19 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
  * formato del error se escribe en un solo sitio.
  */
 @Component
-@RequiredArgsConstructor
 public class SecurityErrorResponder implements AuthenticationEntryPoint, AccessDeniedHandler {
 
-    @Qualifier("handlerExceptionResolver")
     private final HandlerExceptionResolver resolver;
+
+    /**
+     * El constructor va a mano y no con Lombok: {@code @RequiredArgsConstructor}
+     * no copia {@code @Qualifier} al parametro que genera, y hay dos
+     * {@link HandlerExceptionResolver} en el contexto.
+     */
+    public SecurityErrorResponder(
+            @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
+        this.resolver = resolver;
+    }
 
     /** Falta la credencial o no vale. */
     @Override

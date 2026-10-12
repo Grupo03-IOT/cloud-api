@@ -1,5 +1,6 @@
 package com.pe.cloudapi.monitoring.interfaces.acl;
 
+import com.pe.cloudapi.monitoring.application.internal.results.RoomContext;
 import com.pe.cloudapi.monitoring.application.internal.results.RoomReadings;
 import com.pe.cloudapi.monitoring.application.internal.results.RoomSnapshot;
 
@@ -31,4 +32,18 @@ public interface MonitoringContextFacade {
      * existir.
      */
     List<RoomSnapshot> rooms();
+
+    /**
+     * @throws com.pe.cloudapi.shared.domain.model.errors.DomainException
+     *         {@code MONITORING_ROOM_NOT_FOUND} si la sala no existe
+     */
+    RoomContext room(UUID roomId);
+
+    /**
+     * Las salas activas de un local, cada una con su tipo.
+     *
+     * @throws com.pe.cloudapi.shared.domain.model.errors.DomainException
+     *         {@code MONITORING_SITE_NOT_FOUND} si el local no existe
+     */
+    List<RoomContext> roomsOfSite(UUID siteId);
 }

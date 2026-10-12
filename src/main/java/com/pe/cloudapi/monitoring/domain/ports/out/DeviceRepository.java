@@ -18,6 +18,9 @@ public interface DeviceRepository {
 
     List<Device> findAllByRoomId(UUID roomId);
 
+    /** Ordenados por código. */
+    List<Device> findAll();
+
     /**
      * Dispositivos que llevan sin reportar desde el instante dado. Sirve para
      * marcarlos caídos sin depender de que ellos avisen.

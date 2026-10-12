@@ -22,7 +22,7 @@ public interface ReadingSeriesProvider {
     /**
      * @param roomId sala consultada
      * @param from   inicio del rango, inclusive
-     * @param to     fin del rango, inclusive
+     * @param to     fin del rango, exclusive
      * @return los puntos ordenados de más antiguo a más reciente
      */
     List<ReadingPoint> seriesOf(UUID roomId, OffsetDateTime from, OffsetDateTime to);

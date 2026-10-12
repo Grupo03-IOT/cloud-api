@@ -2,6 +2,7 @@ package com.pe.cloudapi.iam.domain.ports.out;
 
 import com.pe.cloudapi.iam.domain.model.aggregates.User;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,4 +16,7 @@ public interface UserRepository {
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);
+
+    /** Ordenadas por correo. */
+    List<User> findAll();
 }

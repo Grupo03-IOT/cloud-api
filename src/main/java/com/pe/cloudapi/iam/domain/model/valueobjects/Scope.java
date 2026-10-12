@@ -9,7 +9,9 @@ public enum Scope {
 
     READINGS_WRITE("readings:write"),
 
-    THRESHOLDS_READ("thresholds:read");
+    THRESHOLDS_READ("thresholds:read"),
+
+    EDGES_HEARTBEAT("edges:heartbeat");
 
     private final String code;
 

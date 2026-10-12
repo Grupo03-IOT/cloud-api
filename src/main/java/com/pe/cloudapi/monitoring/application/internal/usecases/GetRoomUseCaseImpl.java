@@ -7,10 +7,13 @@ import com.pe.cloudapi.monitoring.domain.model.errors.MonitoringError;
 import com.pe.cloudapi.monitoring.domain.model.queries.GetRoomQuery;
 import com.pe.cloudapi.monitoring.domain.ports.out.RoomReadingRepository;
 import com.pe.cloudapi.monitoring.domain.ports.out.RoomRepository;
+import com.pe.cloudapi.monitoring.domain.ports.out.RoomTypeRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 
 /**
@@ -23,6 +26,7 @@ public class GetRoomUseCaseImpl implements GetRoomUseCase {
 
     private final RoomRepository rooms;
     private final RoomReadingRepository readings;
+    private final RoomTypeRepository roomTypes;
 
     /**
      * @param query sala buscada
@@ -34,6 +38,7 @@ public class GetRoomUseCaseImpl implements GetRoomUseCase {
     public RoomSnapshot execute(GetRoomQuery query) {
         Room room = rooms.findById(query.roomId())
                 .orElseThrow(() -> MonitoringError.ROOM_NOT_FOUND.with(query.roomId()));
-        return new RoomSnapshot(room, readings.findLatest(query.roomId()));
+        return new RoomSnapshot(room, readings.findLatest(query.roomId()),
+                Optional.ofNullable(room.getRoomTypeId()).flatMap(roomTypes::findById));
     }
 }

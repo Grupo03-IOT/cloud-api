@@ -28,6 +28,11 @@ public class RoomResourceAssembler {
                 room.getAreaM2(),
                 room.isActive(),
                 room.isClassified(),
+                room.getSiteId(),
+                room.getRoomTypeId(),
+                snapshot.roomType()
+                        .map(type -> new RoomResource.RoomTypeSummary(type.getCode(), type.getDisplayName()))
+                        .orElse(null),
                 snapshot.latest().map(this::toLatest).orElse(null));
     }
 

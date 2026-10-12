@@ -1,42 +1,49 @@
 package com.pe.cloudapi.insights.application.internal.usecases;
 
 import com.pe.cloudapi.insights.application.internal.ports.in.AnalyzeRoomUseCase;
-import com.pe.cloudapi.insights.domain.model.errors.InsightsError;
 import com.pe.cloudapi.insights.domain.model.queries.AnalyzeRoomQuery;
+import com.pe.cloudapi.insights.domain.model.valueobjects.AnalyzedRoom;
+import com.pe.cloudapi.insights.domain.model.valueobjects.PeriodWindow;
 import com.pe.cloudapi.insights.domain.model.valueobjects.RoomAnalytics;
-import com.pe.cloudapi.insights.domain.model.valueobjects.ReadingPoint;
-import com.pe.cloudapi.insights.domain.ports.out.WeatherObservationRepository;
 import com.pe.cloudapi.insights.domain.ports.out.ReadingSeriesProvider;
+import com.pe.cloudapi.insights.domain.ports.out.RoomCatalog;
+import com.pe.cloudapi.insights.domain.ports.out.ThresholdProvider;
+import com.pe.cloudapi.insights.domain.ports.out.WeatherObservationRepository;
 import com.pe.cloudapi.insights.domain.services.ComfortAnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 /**
- * Analizar una sala en un periodo.
+ * Analizar una sala en un periodo y compararlo con el anterior.
  *
- * <p>Rechaza los rangos con muy pocos datos en vez de devolver coeficientes
- * calculados sobre cuatro puntos: un número sin respaldo se ve igual de creíble
- * que uno bueno, y eso es peor que no dar ninguno.
+ * <p>El periodo se resuelve en la zona horaria del local de la sala.
  */
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AnalyzeRoomUseCaseImpl implements AnalyzeRoomUseCase {
 
+    private final RoomCatalog rooms;
     private final ReadingSeriesProvider readings;
     private final WeatherObservationRepository weatherObservations;
+    private final ThresholdProvider thresholds;
     private final ComfortAnalyticsService analytics;
 
     @Override
     public RoomAnalytics execute(AnalyzeRoomQuery query) {
-        List<ReadingPoint> series = readings.seriesOf(query.roomId(), query.from(), query.to());
-        if (series.size() < ComfortAnalyticsService.MINIMUM_SAMPLE) {
-            throw InsightsError.RANGE_TOO_SHORT.with(ComfortAnalyticsService.MINIMUM_SAMPLE);
-        }
-        return analytics.analyze(query.roomId(), query.from(), query.to(), series,
-                weatherObservations.findInRange(query.from(), query.to()));
+        AnalyzedRoom room = rooms.room(query.roomId());
+        PeriodWindow window = query.period().in(room.zone());
+        PeriodWindow previous = query.period().previous().in(room.zone());
+        Float noiseThreshold = room.isClassified()
+                ? thresholds.noiseWarnLevel(room.roomTypeId()).orElse(null)
+                : null;
+
+        RoomAnalytics current = analytics.analyze(room.id(), window,
+                readings.seriesOf(room.id(), window.from(), window.to()),
+                weatherObservations.findInRange(window.from(), window.to()),
+                noiseThreshold);
+        return current.withComparison(analytics.compare(current.noiseDistribution(), previous.period(),
+                readings.seriesOf(room.id(), previous.from(), previous.to()), noiseThreshold));
     }
 }

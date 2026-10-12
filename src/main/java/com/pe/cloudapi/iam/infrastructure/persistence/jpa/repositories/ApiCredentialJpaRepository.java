@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,4 +24,11 @@ public interface ApiCredentialJpaRepository extends JpaRepository<ApiCredentialE
             WHERE LOWER(c.code) = LOWER(:code) AND c.deletedAt IS NULL
             """)
     Optional<ApiCredentialEntity> findByCode(String code);
+
+    @Query("""
+            SELECT c FROM ApiCredentialEntity c
+            WHERE c.deletedAt IS NULL
+            ORDER BY LOWER(c.code)
+            """)
+    List<ApiCredentialEntity> findAllNotDeleted();
 }

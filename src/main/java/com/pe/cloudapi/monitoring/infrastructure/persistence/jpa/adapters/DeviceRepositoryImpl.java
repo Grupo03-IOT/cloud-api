@@ -43,6 +43,11 @@ public class DeviceRepositoryImpl implements DeviceRepository {
     }
 
     @Override
+    public List<Device> findAll() {
+        return jpa.findAllAlive().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public List<Device> findSilentSince(OffsetDateTime since) {
         return jpa.findSilentSince(since).stream().map(mapper::toDomain).toList();
     }

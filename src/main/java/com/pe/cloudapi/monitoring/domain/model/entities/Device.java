@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -31,6 +32,9 @@ import java.util.UUID;
 @Builder(toBuilder = true)
 @AllArgsConstructor
 public class Device {
+
+    /** Sin lotes durante más que esto, el dispositivo se da por callado. */
+    public static final Duration SILENCE = Duration.ofMinutes(5);
 
     private final UUID id;
 
@@ -96,5 +100,15 @@ public class Device {
      */
     public boolean hasEverReported() {
         return lastSeen != null;
+    }
+
+    /**
+     * Indica si lleva más de {@link #SILENCE} sin que el Edge reciba un lote suyo.
+     *
+     * @param now el instante de la consulta; entra como parámetro para no depender del reloj
+     * @return {@code true} también si nunca ha reportado
+     */
+    public boolean isSilentAt(OffsetDateTime now) {
+        return lastSeen == null || Duration.between(lastSeen, now).compareTo(SILENCE) > 0;
     }
 }

@@ -36,6 +36,11 @@ public class ApiCredential {
         this.active = true;
     }
 
+    /** Revocar dos veces no es un error: queda revocada igual. */
+    public void revoke() {
+        this.active = false;
+    }
+
     /**
      * @throws com.pe.cloudapi.shared.domain.model.errors.DomainException
      *         {@code IAM_CREDENTIAL_REVOKED} si está desactivada

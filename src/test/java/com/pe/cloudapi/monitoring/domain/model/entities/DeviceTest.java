@@ -43,4 +43,16 @@ class DeviceTest {
         assertThat(device.getFwVersion()).isEqualTo("1.2.0");
         assertThat(device.getLastSeen()).isEqualTo(NOW);
     }
+
+    @Test
+    @DisplayName("is silent when it never reported or has not reported for more than five minutes")
+    void silence() {
+        Device device = new Device(new RegisterDeviceCommand("esp32-sala-01", roomId));
+        assertThat(device.isSilentAt(NOW)).isTrue();
+
+        device.handle(new SyncDeviceStateCommand("esp32-sala-01", roomId, "1.2.0", NOW, 1L, 0L));
+
+        assertThat(device.isSilentAt(NOW.plusMinutes(5))).isFalse();
+        assertThat(device.isSilentAt(NOW.plusMinutes(6))).isTrue();
+    }
 }

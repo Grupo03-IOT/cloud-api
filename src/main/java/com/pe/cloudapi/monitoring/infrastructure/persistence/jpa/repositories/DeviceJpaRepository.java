@@ -29,6 +29,13 @@ public interface DeviceJpaRepository extends JpaRepository<DeviceEntity, UUID> {
             """)
     List<DeviceEntity> findAllByRoomId(UUID roomId);
 
+    @Query("""
+            SELECT d FROM DeviceEntity d
+            WHERE d.deletedAt IS NULL
+            ORDER BY d.code
+            """)
+    List<DeviceEntity> findAllAlive();
+
     /**
      * Dispositivos que llevan sin reportar desde el instante dado. Sirve para
      * marcarlos como caídos sin depender de que ellos avisen.

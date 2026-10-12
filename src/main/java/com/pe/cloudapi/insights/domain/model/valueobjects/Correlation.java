@@ -3,12 +3,8 @@ package com.pe.cloudapi.insights.domain.model.valueobjects;
 /**
  * Correlación de Pearson entre dos series, con el tamaño de la muestra.
  *
- * <p>El coeficiente por sí solo engaña: con tres puntos casi cualquier par de
- * series correlaciona. Por eso {@code sampleSize} viaja con él y quien lo
- * interpreta puede descartarlo si es pequeño.
- *
  * @param coefficient de -1 a +1; nulo si no había datos suficientes
- * @param sampleSize  minutos usados para calcularlo
+ * @param sampleSize  minutos o pares usados para calcularlo
  */
 public record Correlation(Double coefficient, int sampleSize) {
 
@@ -19,22 +15,21 @@ public record Correlation(Double coefficient, int sampleSize) {
         return new Correlation(null, sampleSize);
     }
 
-    public boolean isReliable() {
-        return coefficient != null && sampleSize >= MINIMUM_SAMPLE;
+    public Verdict verdict() {
+        if (sampleSize == 0) {
+            return Verdict.NO_DATA;
+        }
+        if (coefficient == null || sampleSize < MINIMUM_SAMPLE) {
+            return Verdict.NOT_ENOUGH_EVIDENCE;
+        }
+        return Verdict.CONCLUSIVE;
     }
 
-    /**
-     * Etiqueta legible de la fuerza de la relación, según los umbrales
-     * convencionales en ciencias sociales.
-     */
-    public String strength() {
-        if (!isReliable()) {
-            return "insufficient_data";
+    /** Nula si no hay coeficiente. */
+    public Direction direction() {
+        if (coefficient == null) {
+            return null;
         }
-        double magnitude = Math.abs(coefficient);
-        if (magnitude < 0.3) return "negligible";
-        if (magnitude < 0.5) return "weak";
-        if (magnitude < 0.7) return "moderate";
-        return "strong";
+        return coefficient >= 0 ? Direction.POSITIVE : Direction.NEGATIVE;
     }
 }

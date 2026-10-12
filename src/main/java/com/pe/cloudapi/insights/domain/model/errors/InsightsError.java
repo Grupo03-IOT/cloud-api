@@ -8,11 +8,8 @@ import com.pe.cloudapi.shared.domain.model.errors.ErrorKind;
  */
 public enum InsightsError implements ErrorCatalog {
 
-    RANGE_INVERTED(ErrorKind.VALIDATION,
-            "The start of the range is after its end: %s > %s"),
-
-    RANGE_TOO_SHORT(ErrorKind.UNPROCESSABLE,
-            "A range of at least %s minutes is needed to compute anything meaningful");
+    PERIOD_INVALID(ErrorKind.VALIDATION,
+            "'%s' is not a period: use a month (2026-10), an ISO week (2026-W42) or a day (2026-10-12)");
 
     private static final String PREFIX = "INSIGHTS";
 

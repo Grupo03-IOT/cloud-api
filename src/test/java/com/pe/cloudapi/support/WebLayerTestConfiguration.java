@@ -5,6 +5,7 @@ import com.pe.cloudapi.iam.infrastructure.authentication.ApiKeyAuthenticationFil
 import com.pe.cloudapi.iam.infrastructure.authentication.JwtConfiguration;
 import com.pe.cloudapi.iam.infrastructure.authentication.SecurityConfiguration;
 import com.pe.cloudapi.iam.infrastructure.configuration.IamErrorCatalogConfiguration;
+import com.pe.cloudapi.insights.infrastructure.configuration.InsightsErrorCatalogConfiguration;
 import com.pe.cloudapi.monitoring.infrastructure.configuration.MonitoringErrorCatalogConfiguration;
 import com.pe.cloudapi.shared.interfaces.rest.ErrorCatalogs;
 import com.pe.cloudapi.shared.interfaces.rest.GlobalExceptionHandler;
@@ -38,7 +39,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
         ErrorCatalogs.class,
         IamErrorCatalogConfiguration.class,
         MonitoringErrorCatalogConfiguration.class,
-        AlertingErrorCatalogConfiguration.class
+        AlertingErrorCatalogConfiguration.class,
+        InsightsErrorCatalogConfiguration.class
 })
 @EnableWebSecurity
 public class WebLayerTestConfiguration {

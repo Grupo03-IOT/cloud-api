@@ -3,10 +3,6 @@ package com.pe.cloudapi.insights.domain.model.valueobjects;
 /**
  * Recta ajustada por mínimos cuadrados a una serie temporal.
  *
- * <p>La pendiente se expresa <strong>por hora</strong>, no por milisegundo, que
- * es la unidad en la que se calcula: una deriva de 0,000000001 por milisegundo
- * no le dice nada a nadie.
- *
  * @param slopePerHour cuánto cambia la magnitud por cada hora
  * @param rSquared     qué parte de la variación explica la recta, de 0 a 1
  * @param sampleSize   minutos usados
@@ -22,8 +18,22 @@ public record Trend(Double slopePerHour, Double rSquared, int sampleSize) {
         return new Trend(null, null, sampleSize);
     }
 
-    public boolean isReliable() {
-        return slopePerHour != null && rSquared != null
-                && sampleSize >= MINIMUM_SAMPLE && rSquared >= MINIMUM_FIT;
+    public Verdict verdict() {
+        if (sampleSize == 0) {
+            return Verdict.NO_DATA;
+        }
+        if (slopePerHour == null || rSquared == null
+                || sampleSize < MINIMUM_SAMPLE || rSquared < MINIMUM_FIT) {
+            return Verdict.NOT_ENOUGH_EVIDENCE;
+        }
+        return Verdict.CONCLUSIVE;
+    }
+
+    /** Nula si no hay pendiente. */
+    public Direction direction() {
+        if (slopePerHour == null) {
+            return null;
+        }
+        return slopePerHour >= 0 ? Direction.RISING : Direction.FALLING;
     }
 }

@@ -9,8 +9,11 @@ import com.pe.cloudapi.insights.domain.model.valueobjects.RoomAnalytics;
 public interface AnalyzeRoomUseCase {
 
     /**
+     * Un periodo sin lecturas no es un error: sale con cobertura cero y sus
+     * medidas sin datos.
+     *
      * @throws com.pe.cloudapi.shared.domain.model.errors.DomainException
-     *         {@code INSIGHTS_RANGE_TOO_SHORT} si no hay minutos suficientes
+     *         {@code MONITORING_ROOM_NOT_FOUND} si la sala no existe
      */
     RoomAnalytics execute(AnalyzeRoomQuery query);
 }

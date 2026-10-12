@@ -8,58 +8,95 @@ import java.util.UUID;
 
 /**
  * Conclusiones sobre una sala en un periodo.
+ *
+ * <p>Un campo ausente no es un cero: falta porque no hay respaldo para darlo.
  */
-@Schema(description = "Statistical findings for a room over a period")
+@Schema(description = "What can be said about a room over a period")
 public record RoomAnalyticsResource(
-
         UUID roomId,
-        OffsetDateTime from,
-        OffsetDateTime to,
-
-        @Schema(description = "Minutos con datos en el periodo")
-        int sampleSize,
-
-        @Schema(description = "Si el ruido sube con la ocupación o es del ambiente")
-        CorrelationResource noiseVsOccupancy,
-
-        @Schema(description = "Cuánto se calienta la sala por hora")
-        TrendResource thermalDrift,
-
-        @Schema(description = "Si la sala sigue a la temperatura de la calle. "
-                + "Alta correlación significa mal aislamiento térmico")
-        CorrelationResource indoorVsOutdoor,
-
-        @Schema(description = "Minutos con picos de ruido fuera de lo normal para esta sala")
-        List<OffsetDateTime> noiseAnomalies
-
+        @Schema(example = "2026-10") String period,
+        @Schema(description = "Inicio del periodo en la zona del local, inclusive") OffsetDateTime from,
+        @Schema(description = "Fin del periodo en la zona del local, exclusive") OffsetDateTime to,
+        @Schema(example = "America/Lima") String timezone,
+        DataQualityResource dataQuality,
+        @Schema(description = "Solo lo concluyente. Vacía si no hay nada que contar, que es un buen resultado")
+        List<FindingResource> findings,
+        MeasuresResource measures,
+        NoiseEpisodesResource noiseEpisodes,
+        @Schema(description = "No viene si el periodo no tiene lecturas de ruido")
+        NoiseDistributionResource noiseDistribution,
+        @Schema(description = "No viene si el periodo anterior no tiene lecturas de ruido")
+        ComparisonResource comparison
 ) {
 
-    /**
-     * Una correlación con el respaldo que tiene.
-     *
-     * <p>{@code reliable} en falso significa que el coeficiente existe pero no
-     * se sostiene: viene de muy pocas muestras y no debe usarse para decidir
-     * nada.
-     */
-    @Schema(description = "Pearson correlation with its backing")
-    public record CorrelationResource(
-            @Schema(description = "De -1 a +1; nulo si faltan datos") Double coefficient,
-            @Schema(example = "moderate") String strength,
-            int sampleSize,
-            boolean reliable
+    @Schema(description = "How much of the period has readings")
+    public record DataQualityResource(
+            @Schema(description = "Minutos del periodo completo, aunque no haya terminado")
+            long expectedMinutes,
+            int receivedMinutes,
+            @Schema(example = "95.3") double coveragePct
     ) {}
 
-    /**
-     * Una tendencia ajustada por mínimos cuadrados.
-     *
-     * @param slopePerHour cuánto cambia la magnitud por hora
-     * @param rSquared     qué parte de la variación explica la recta, de 0 a 1
-     */
-    @Schema(description = "Least-squares trend")
-    public record TrendResource(
-            @Schema(example = "0.42") Double slopePerHour,
-            Double rSquared,
+    @Schema(description = "A conclusion worth telling. The client translates the code")
+    public record FindingResource(
+            @Schema(example = "noise_follows_occupancy") String code,
+            double value,
+            @Schema(example = "pearson_r") String unit,
+            @Schema(example = "positive") String direction
+    ) {}
+
+    @Schema(description = "The three calculations, with their backing")
+    public record MeasuresResource(
+            MeasureResource noiseVsOccupancy,
+            MeasureResource thermalDrift,
+            MeasureResource indoorVsOutdoor
+    ) {}
+
+    @Schema(description = "A calculation. Without a conclusive verdict there is no code, value or direction")
+    public record MeasureResource(
+            @Schema(example = "conclusive", allowableValues = {"conclusive", "not_enough_evidence", "no_data"})
+            String verdict,
+            @Schema(example = "noise_follows_occupancy") String code,
+            Double value,
+            @Schema(example = "pearson_r") String unit,
+            @Schema(example = "positive", allowableValues = {"positive", "negative", "rising", "falling"})
+            String direction,
+            ConfidenceResource confidence
+    ) {}
+
+    @Schema(description = "What the value rests on")
+    public record ConfidenceResource(int sampleSize, Double rSquared) {}
+
+    @Schema(description = "Anomalous noise, grouped into episodes")
+    public record NoiseEpisodesResource(
+            @Schema(description = "Todos los episodios, aunque worst venga recortada") int total,
+            @Schema(description = "Los de mayor pico, del más fuerte al más débil") List<NoiseEpisodeResource> worst
+    ) {}
+
+    @Schema(description = "Consecutive anomalous minutes")
+    public record NoiseEpisodeResource(
+            OffsetDateTime from,
+            @Schema(description = "Último minuto, inclusive") OffsetDateTime to,
+            int minutes,
+            float peakLaeq,
+            OffsetDateTime peakAt
+    ) {}
+
+    @Schema(description = "Noise percentiles and, with a threshold, time above it")
+    public record NoiseDistributionResource(
+            double p50,
+            double p90,
+            double p95,
             int sampleSize,
-            boolean reliable
+            @Schema(description = "Umbral de aviso de laeq del tipo de sala") Float threshold,
+            Integer minutesOver,
+            @Schema(example = "17.9") Double pctOver
+    ) {}
+
+    @Schema(description = "This period against the previous one. Negative is better")
+    public record ComparisonResource(
+            @Schema(example = "2026-09") String previousPeriod,
+            @Schema(description = "Puntos porcentuales; no viene si no hay umbral") Double pctOverDelta,
+            double p90Delta
     ) {}
 }

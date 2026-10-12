@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 /**
  * Asignar un tipo a una sala.
  *
@@ -46,6 +48,6 @@ public class ClassifyRoomUseCaseImpl implements ClassifyRoomUseCase {
 
         room.handle(command);
         Room classified = rooms.save(room);
-        return new RoomSnapshot(classified, readings.findLatest(classified.getId()));
+        return new RoomSnapshot(classified, readings.findLatest(classified.getId()), Optional.of(roomType));
     }
 }

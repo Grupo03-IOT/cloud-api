@@ -30,9 +30,22 @@ public record RoomResource(
                 + "sin tipo no tiene umbrales aplicables")
         boolean classified,
 
+        UUID siteId,
+
+        UUID roomTypeId,
+
+        @Schema(description = "Tipo de la sala; no viene si está sin clasificar")
+        RoomTypeSummary roomType,
+
         Latest latest
 
 ) {
+
+    @Schema(description = "Room type the room is judged against")
+    public record RoomTypeSummary(
+            @Schema(example = "phone_booth") String code,
+            @Schema(example = "Phone booth") String displayName
+    ) {}
 
     /**
      * Resumen de la última lectura.

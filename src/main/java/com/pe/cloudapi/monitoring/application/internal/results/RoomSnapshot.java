@@ -2,6 +2,7 @@ package com.pe.cloudapi.monitoring.application.internal.results;
 
 import com.pe.cloudapi.monitoring.domain.model.aggregates.Room;
 import com.pe.cloudapi.monitoring.domain.model.aggregates.RoomReading;
+import com.pe.cloudapi.monitoring.domain.model.aggregates.RoomType;
 
 import java.util.Optional;
 
@@ -12,8 +13,9 @@ import java.util.Optional;
  * para responder, en vez de que sea el controlador quien vaya juntando piezas.
  * Un controlador que orquesta deja de ser un traductor de HTTP.
  *
- * @param room   la sala
- * @param latest su lectura más reciente; vacío si nunca ha reportado
+ * @param room     la sala
+ * @param latest   su lectura más reciente; vacío si nunca ha reportado
+ * @param roomType su tipo; vacío mientras no esté clasificada
  */
-public record RoomSnapshot(Room room, Optional<RoomReading> latest) {
+public record RoomSnapshot(Room room, Optional<RoomReading> latest, Optional<RoomType> roomType) {
 }

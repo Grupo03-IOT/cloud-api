@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Listar las salas que aparecieron solas y nadie ha clasificado todavía.
@@ -29,7 +30,7 @@ public class ListUnclassifiedRoomsUseCaseImpl implements ListUnclassifiedRoomsUs
     @Override
     public List<RoomSnapshot> execute() {
         return rooms.findUnclassified().stream()
-                .map(room -> new RoomSnapshot(room, readings.findLatest(room.getId())))
+                .map(room -> new RoomSnapshot(room, readings.findLatest(room.getId()), Optional.empty()))
                 .toList();
     }
 }

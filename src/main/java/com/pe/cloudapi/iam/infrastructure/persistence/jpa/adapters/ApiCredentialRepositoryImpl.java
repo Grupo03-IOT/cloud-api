@@ -9,7 +9,9 @@ import com.pe.cloudapi.iam.infrastructure.persistence.jpa.repositories.ApiCreden
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -34,5 +36,15 @@ public class ApiCredentialRepositoryImpl implements ApiCredentialRepository {
     @Override
     public boolean existsByCode(String code) {
         return jpa.findByCode(code).isPresent();
+    }
+
+    @Override
+    public Optional<ApiCredential> findById(UUID id) {
+        return jpa.findById(id).filter(entity -> !entity.isDeleted()).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<ApiCredential> findAll() {
+        return jpa.findAllNotDeleted().stream().map(mapper::toDomain).toList();
     }
 }

@@ -24,6 +24,8 @@ public enum IamError implements ErrorCatalog {
     CREDENTIAL_CODE_ALREADY_USED(ErrorKind.CONFLICT,
             "A credential with code '%s' already exists"),
 
+    CREDENTIAL_NOT_FOUND(ErrorKind.NOT_FOUND,
+            "Credential %s does not exist"),
     CREDENTIAL_REVOKED(ErrorKind.CONFLICT,
             "The credential '%s' is revoked"),
 

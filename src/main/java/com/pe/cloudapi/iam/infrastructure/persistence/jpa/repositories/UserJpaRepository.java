@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,4 +18,11 @@ public interface UserJpaRepository extends JpaRepository<UserEntity, UUID> {
             WHERE LOWER(u.email) = LOWER(:email) AND u.deletedAt IS NULL
             """)
     Optional<UserEntity> findByEmail(String email);
+
+    @Query("""
+            SELECT u FROM UserEntity u
+            WHERE u.deletedAt IS NULL
+            ORDER BY LOWER(u.email)
+            """)
+    List<UserEntity> findAllActive();
 }

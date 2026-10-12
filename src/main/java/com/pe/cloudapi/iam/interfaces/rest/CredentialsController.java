@@ -1,6 +1,9 @@
 package com.pe.cloudapi.iam.interfaces.rest;
 
 import com.pe.cloudapi.iam.application.internal.ports.in.CreateApiCredentialUseCase;
+import com.pe.cloudapi.iam.application.internal.ports.in.ListApiCredentialsUseCase;
+import com.pe.cloudapi.iam.application.internal.ports.in.RevokeApiCredentialUseCase;
+import com.pe.cloudapi.iam.domain.model.aggregates.ApiCredential;
 import com.pe.cloudapi.iam.application.internal.results.CreatedCredential;
 import com.pe.cloudapi.iam.domain.model.valueobjects.Scope;
 import com.pe.cloudapi.iam.interfaces.rest.resources.CreateCredentialResource;
@@ -15,13 +18,18 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -31,6 +39,8 @@ import java.util.stream.Collectors;
 public class CredentialsController {
 
     private final CreateApiCredentialUseCase createApiCredential;
+    private final ListApiCredentialsUseCase listApiCredentials;
+    private final RevokeApiCredentialUseCase revokeApiCredential;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
@@ -51,11 +61,40 @@ public class CredentialsController {
                 .collect(Collectors.toSet());
 
         CreatedCredential created = createApiCredential.execute(resource.code(), scopes);
+        return toResource(created.credential(), created.apiKey());
+    }
+
+    @GetMapping
+    @Operation(summary = "List machine credentials",
+            description = "Revoked ones included. The key is never returned again.")
+    @ApiResponses(@ApiResponse(responseCode = "200", description = "Credentials returned"))
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<CredentialResource> list() {
+        return listApiCredentials.execute().stream()
+                .map(credential -> toResource(credential, null))
+                .toList();
+    }
+
+    @DeleteMapping("/{credentialId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Revoke a machine credential",
+            description = """
+                    The machine gets 401 from its next request on. The credential is                     deactivated, not erased, and revoking it twice is not an error.""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Credential revoked"),
+            @ApiResponse(responseCode = "404", description = "Credential does not exist")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    public void revoke(@PathVariable UUID credentialId) {
+        revokeApiCredential.execute(credentialId);
+    }
+
+    private static CredentialResource toResource(ApiCredential credential, String apiKey) {
         return new CredentialResource(
-                created.credential().getId(),
-                created.credential().getCode(),
-                created.credential().isActive(),
-                created.credential().getScopes().stream().map(Scope::toCode).sorted().toList(),
-                created.apiKey());
+                credential.getId(),
+                credential.getCode(),
+                credential.isActive(),
+                credential.getScopes().stream().map(Scope::toCode).sorted().toList(),
+                apiKey);
     }
 }

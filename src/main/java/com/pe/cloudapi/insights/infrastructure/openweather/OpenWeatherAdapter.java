@@ -2,6 +2,7 @@ package com.pe.cloudapi.insights.infrastructure.openweather;
 
 import com.pe.cloudapi.insights.domain.model.aggregates.WeatherObservation;
 import com.pe.cloudapi.insights.domain.ports.out.OutdoorWeatherProvider;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,9 @@ import java.util.Optional;
  * devuelve algo inesperado, se registra y se devuelve vacío. Correlacionar con
  * el exterior mejora el análisis, pero que un servicio ajeno esté caído no
  * puede dejar al coworking sin su telemetría.
+ *
+ * <p>Del fallo solo se registra el código HTTP: el mensaje de Feign trae la
+ * URL completa, y la clave viaja en ella como {@code appid}.
  */
 @Slf4j
 @Component
@@ -35,8 +39,11 @@ public class OpenWeatherAdapter implements OutdoorWeatherProvider {
                     response.main() == null ? null : response.main().humidity(),
                     response.weather() == null || response.weather().isEmpty()
                             ? null : response.weather().getFirst().main()));
+        } catch (FeignException ex) {
+            log.warn("OpenWeather no respondió (HTTP {})", ex.status());
+            return Optional.empty();
         } catch (RuntimeException ex) {
-            log.warn("OpenWeather no respondió: {}", ex.getMessage());
+            log.warn("OpenWeather no respondió: {}", ex.getClass().getSimpleName());
             return Optional.empty();
         }
     }

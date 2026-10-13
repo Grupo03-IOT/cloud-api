@@ -3,10 +3,13 @@ package com.pe.cloudapi.shared.infrastructure.documentation.openapi.configuratio
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import io.swagger.v3.core.jackson.ModelResolver;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +25,9 @@ import java.util.List;
  */
 @Configuration
 public class OpenApiConfiguration {
+
+    private static final String BEARER = "bearer";
+    private static final String API_KEY = "apiKey";
 
     @Bean
     public ModelResolver modelResolver() {
@@ -45,6 +51,19 @@ public class OpenApiConfiguration {
                                 .url("https://www.apache.org/licenses/LICENSE-2.0")))
                 .servers(List.of(
                         new Server().url("/").description("This deployment")))
+                .components(new Components()
+                        .addSecuritySchemes(BEARER, new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                                .description("Token from POST /api/v1/auth/login, for people"))
+                        .addSecuritySchemes(API_KEY, new SecurityScheme()
+                                .type(SecurityScheme.Type.APIKEY)
+                                .in(SecurityScheme.In.HEADER)
+                                .name("X-API-Key")
+                                .description("Machine credential, for the Edge")))
+                .addSecurityItem(new SecurityRequirement().addList(BEARER))
+                .addSecurityItem(new SecurityRequirement().addList(API_KEY))
                 .externalDocs(new ExternalDocumentation()
                         .description("Project repository")
                         .url("https://github.com/Grupo03-IOT/cloud-api"));

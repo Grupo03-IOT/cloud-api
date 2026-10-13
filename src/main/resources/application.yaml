@@ -58,6 +58,7 @@ app:
   iam:
     access-token-ttl: ${ACCESS_TOKEN_TTL:PT1H}
     api-key-prefix: ${API_KEY_PREFIX:comfort_live_}
+    signing-key: ${JWT_SIGNING_KEY:}
   cors:
     allowed-origins: ${CORS_ORIGINS:}
 

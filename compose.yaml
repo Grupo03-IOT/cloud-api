@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     container_name: comfort-db
     restart: unless-stopped
     environment:
@@ -12,7 +12,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U comfort -d comfort"]
       interval: 5s
@@ -32,6 +32,7 @@ services:
       OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-}
       OPENWEATHER_CITY_ID: ${OPENWEATHER_CITY_ID:-3936456}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
+      JWT_SIGNING_KEY: ${JWT_SIGNING_KEY:-}
       TZ: UTC
     ports:
       - "8080:8080"

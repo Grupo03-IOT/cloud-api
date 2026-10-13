@@ -1,0 +1,72 @@
+name: Deploy to Azure
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Image tag to build and deploy, such as 1.3.0
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: cafecitoacr.azurecr.io
+  IMAGE: cloud-api
+  RESOURCE_GROUP: rg-sensework-iot
+  CONTAINER_APP: cafecito-app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Resolve the version
+        id: version
+        run: |
+          VERSION="${{ github.event.release.tag_name || inputs.version }}"
+          echo "tag=${VERSION#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
+
+      - name: Sign in to Azure without stored secrets
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push the image
+        run: |
+          az acr login --name "${REGISTRY%%.*}"
+          docker build -t "$REGISTRY/$IMAGE:${{ steps.version.outputs.tag }}" .
+          docker push "$REGISTRY/$IMAGE:${{ steps.version.outputs.tag }}"
+
+      - name: Deploy the image
+        run: |
+          az config set extension.use_dynamic_install=yes_without_prompt
+          az containerapp update -g "$RESOURCE_GROUP" -n "$CONTAINER_APP" \
+            --image "$REGISTRY/$IMAGE:${{ steps.version.outputs.tag }}" -o none
+
+      - name: Wait until the new version answers
+        run: |
+          FQDN=$(az containerapp show -g "$RESOURCE_GROUP" -n "$CONTAINER_APP" \
+            --query properties.configuration.ingress.fqdn -o tsv)
+          for attempt in $(seq 1 30); do
+            if curl -fs "https://$FQDN/actuator/health" | grep -q '"UP"'; then
+              echo "$REGISTRY/$IMAGE:${{ steps.version.outputs.tag }} is up at https://$FQDN"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "The new version did not answer in five minutes" >&2
+          exit 1

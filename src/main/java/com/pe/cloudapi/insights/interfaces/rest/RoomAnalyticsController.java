@@ -38,7 +38,7 @@ import java.util.UUID;
 public class RoomAnalyticsController {
 
     private static final String PERIOD_DESCRIPTION =
-            "Un mes (2026-10), una semana ISO (2026-W42) o un día (2026-10-12), en la zona del local";
+            "A month (2026-10), an ISO week (2026-W42) or a day (2026-10-12), in the site's time zone";
 
     private final AnalyzeRoomUseCase analyzeRoomUseCase;
     private final ProfileRoomHourlyUseCase profileRoomHourlyUseCase;

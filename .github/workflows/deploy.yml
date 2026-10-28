@@ -4,10 +4,6 @@ on:
   release:
     types: [published]
   workflow_dispatch:
-    inputs:
-      version:
-        description: Image tag to build and deploy, such as 1.3.0
-        required: true
 
 permissions:
   id-token: write
@@ -26,17 +22,14 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     environment: production
     steps:
       - name: Resolve the version
         id: version
-        run: |
-          VERSION="${{ github.event.release.tag_name || inputs.version }}"
-          echo "tag=${VERSION#v}" >> "$GITHUB_OUTPUT"
+        run: echo "tag=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.release.tag_name || github.ref }}
 
       - name: Sign in to Azure without stored secrets
         uses: azure/login@v2

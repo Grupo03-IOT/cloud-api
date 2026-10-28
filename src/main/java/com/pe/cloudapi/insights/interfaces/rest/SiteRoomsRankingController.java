@@ -48,7 +48,7 @@ public class SiteRoomsRankingController {
     @PreAuthorize("hasRole('ADMIN')")
     public SiteRoomsRankingResource rank(
             @PathVariable UUID siteId,
-            @Parameter(description = "Un mes (2026-10), una semana ISO (2026-W42) o un día (2026-10-12)",
+            @Parameter(description = "A month (2026-10), an ISO week (2026-W42) or a day (2026-10-12)",
                     required = true, example = "2026-10")
             @RequestParam String period) {
         Period parsed = Period.parse(period);

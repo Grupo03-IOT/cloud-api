@@ -47,8 +47,14 @@ public record ReadingResource(
         @Valid Comfort comfort,
         @Valid Occupancy occupancy,
         @Valid Quality quality
-
+        , @Valid Forecast forecast
 ) {
+
+    public ReadingResource(String roomId, OffsetDateTime ts, Integer periodS,
+            Device device, Acoustic acoustic, Climate climate, Comfort comfort,
+            Occupancy occupancy, Quality quality) {
+        this(roomId, ts, periodS, device, acoustic, climate, comfort, occupancy, quality, null);
+    }
 
     /**
      * Estado del módulo que reporta por la sala. Puede venir nulo si el Edge
@@ -98,4 +104,15 @@ public record ReadingResource(
      */
     @Schema(description = "Calidad del dato")
     public record Quality(Integer batches, Integer expected) {}
+
+    @Schema(description = "Pronóstico opcional del modelo de temperatura")
+    public record Forecast(
+            @NotNull
+            @jakarta.validation.constraints.DecimalMin("0.0")
+            @jakarta.validation.constraints.DecimalMax("1.0") Float probability,
+            @NotNull @Positive @jakarta.validation.constraints.Max(1440) Integer horizonMin,
+            @NotNull Float temperatureLimitC,
+            @NotBlank String modelVersion,
+            @NotNull OffsetDateTime generatedAt
+    ) {}
 }

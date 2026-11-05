@@ -52,6 +52,12 @@ public class ReadingResourceAssemblerFromDomain {
                         reading.getOccupancy().transitions()),
                 new ReadingResource.Quality(
                         reading.getQuality().batches(),
-                        reading.getQuality().expected()));
+                        reading.getQuality().expected()),
+                reading.getForecast() == null ? null : new ReadingResource.Forecast(
+                        reading.getForecast().probability(),
+                        reading.getForecast().horizonMin(),
+                        reading.getForecast().temperatureLimitC(),
+                        reading.getForecast().modelVersion(),
+                        reading.getForecast().generatedAt()));
     }
 }

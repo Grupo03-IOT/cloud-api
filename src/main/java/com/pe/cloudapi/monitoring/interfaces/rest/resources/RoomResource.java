@@ -70,6 +70,9 @@ public record RoomResource(
 
             @Schema(description = "Falso si el minuto se construyó con menos "
                     + "lotes de los esperados")
-            boolean complete
+            boolean complete,
+
+            @Schema(description = "Optional model forecast associated with this reading")
+            ReadingResource.Forecast forecast
     ) {}
 }

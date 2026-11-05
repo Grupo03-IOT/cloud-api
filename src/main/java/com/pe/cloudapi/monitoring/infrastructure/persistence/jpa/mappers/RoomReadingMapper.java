@@ -6,6 +6,7 @@ import com.pe.cloudapi.monitoring.domain.model.valueobjects.Climate;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.DataQuality;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Occupancy;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThermalComfort;
+import com.pe.cloudapi.monitoring.domain.model.valueobjects.TemperatureForecast;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities.RoomReadingEntity;
 
 import org.springframework.stereotype.Component;
@@ -30,6 +31,10 @@ public class RoomReadingMapper {
                 .comfort(new ThermalComfort(e.getPmv(), e.getPpd(), e.getThermalVerdict()))
                 .occupancy(new Occupancy(e.getOccupiedPct(), e.getTransitions()))
                 .quality(new DataQuality(e.getBatches(), e.getExpected()))
+                .forecast(e.getForecastProbability() == null ? null : new TemperatureForecast(
+                        e.getForecastProbability(), e.getForecastHorizonMin(),
+                        e.getForecastTemperatureLimitC(), e.getForecastModelVersion(),
+                        e.getForecastGeneratedAt()))
                 .receivedAt(e.getReceivedAt())
                 .build();
     }
@@ -65,6 +70,12 @@ public class RoomReadingMapper {
         e.setBatches(d.getQuality().batches());
         e.setExpected(d.getQuality().expected());
         e.setReceivedAt(d.getReceivedAt());
+        TemperatureForecast f = d.getForecast();
+        e.setForecastProbability(f == null ? null : f.probability());
+        e.setForecastHorizonMin(f == null ? null : f.horizonMin());
+        e.setForecastTemperatureLimitC(f == null ? null : f.temperatureLimitC());
+        e.setForecastModelVersion(f == null ? null : f.modelVersion());
+        e.setForecastGeneratedAt(f == null ? null : f.generatedAt());
         return e;
     }
 }

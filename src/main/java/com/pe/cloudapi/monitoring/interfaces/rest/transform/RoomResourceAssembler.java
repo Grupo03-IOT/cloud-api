@@ -3,6 +3,7 @@ package com.pe.cloudapi.monitoring.interfaces.rest.transform;
 import com.pe.cloudapi.monitoring.application.internal.results.RoomSnapshot;
 import com.pe.cloudapi.monitoring.domain.model.aggregates.Room;
 import com.pe.cloudapi.monitoring.domain.model.aggregates.RoomReading;
+import com.pe.cloudapi.monitoring.interfaces.rest.resources.ReadingResource;
 import com.pe.cloudapi.monitoring.interfaces.rest.resources.RoomResource;
 
 import org.springframework.stereotype.Component;
@@ -45,6 +46,12 @@ public class RoomResourceAssembler {
                 reading.getComfort().ppd(),
                 reading.getComfort().verdict(),
                 reading.getOccupancy().occupiedPct(),
-                reading.isReliable());
+                reading.isReliable(),
+                reading.getForecast() == null ? null : new ReadingResource.Forecast(
+                        reading.getForecast().probability(),
+                        reading.getForecast().horizonMin(),
+                        reading.getForecast().temperatureLimitC(),
+                        reading.getForecast().modelVersion(),
+                        reading.getForecast().generatedAt()));
     }
 }

@@ -35,4 +35,27 @@ class UserTest {
                 .isInstanceOf(DomainException.class)
                 .extracting("code").isEqualTo("IAM_ACCOUNT_DISABLED");
     }
+
+    @Test
+    @DisplayName("a member can be disabled and enabled again")
+    void memberCanBeToggled() {
+        User user = new User("member@comfort.pe", "hash", "Member", Set.of(Role.MEMBER));
+
+        user.changeActive(false);
+        assertThat(user.isActive()).isFalse();
+
+        user.changeActive(true);
+        assertThat(user.isActive()).isTrue();
+    }
+
+    @Test
+    @DisplayName("an administrator cannot be disabled")
+    void adminCannotBeDisabled() {
+        User admin = new User("admin@comfort.pe", "hash", "Admin", Set.of(Role.ADMIN));
+
+        assertThatThrownBy(() -> admin.changeActive(false))
+                .isInstanceOf(DomainException.class)
+                .extracting("code").isEqualTo("IAM_ADMIN_CANNOT_BE_DISABLED");
+        assertThat(admin.isActive()).isTrue();
+    }
 }

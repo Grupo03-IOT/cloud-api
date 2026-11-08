@@ -21,6 +21,9 @@ public enum IamError implements ErrorCatalog {
     ACCOUNT_DISABLED(ErrorKind.CONFLICT,
             "This account is disabled"),
 
+    ADMIN_CANNOT_BE_DISABLED(ErrorKind.CONFLICT,
+            "An administrator account cannot be disabled"),
+
     CREDENTIAL_CODE_ALREADY_USED(ErrorKind.CONFLICT,
             "A credential with code '%s' already exists"),
 

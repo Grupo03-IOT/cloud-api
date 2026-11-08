@@ -75,15 +75,18 @@ public class Device {
      * <p>Los contadores se copian, no se recalculan: el Edge es la única capa
      * que ve la secuencia completa de lotes.
      *
-     * <p>Se ignoran los reportes que traigan una secuencia anterior a la ya
-     * conocida. Ocurre cuando el Edge vacía una cola atrasada tras un corte de
-     * red: llegan minutos viejos después de otros más nuevos, y sin esta guarda
-     * el estado del dispositivo retrocedería.
+     * <p>Se ignoran los reportes más antiguos que el ya conocido. Ocurre cuando
+     * el Edge vacía una cola atrasada tras un corte de red: llegan minutos viejos
+     * después de otros más nuevos, y sin esta guarda el estado del dispositivo
+     * retrocedería. Se compara el instante del reporte y no la secuencia: al
+     * reiniciarse, el ESP32 vuelve a numerar sus lotes desde 1, y comparar la
+     * secuencia dejaba al dispositivo marcado como silencioso hasta superar el
+     * número anterior.
      *
      * @param command estado reportado por el Edge
      */
     public void handle(SyncDeviceStateCommand command) {
-        if (lastSeq != null && command.lastSeq() != null && command.lastSeq() < lastSeq) {
+        if (lastSeen != null && command.lastSeen() != null && command.lastSeen().isBefore(lastSeen)) {
             return;
         }
         this.roomId = command.roomId();

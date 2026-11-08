@@ -2,6 +2,11 @@ package com.pe.cloudapi.iam.interfaces.rest;
 
 import com.pe.cloudapi.iam.application.internal.ports.in.ListUsersUseCase;
 import com.pe.cloudapi.iam.application.internal.ports.in.RegisterUserUseCase;
+import com.pe.cloudapi.iam.application.internal.ports.in.SetUserActiveUseCase;
+import com.pe.cloudapi.iam.interfaces.rest.resources.UpdateUserStatusResource;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import java.util.UUID;
 import com.pe.cloudapi.iam.interfaces.rest.resources.RegisterUserResource;
 import com.pe.cloudapi.iam.interfaces.rest.resources.UserResource;
 import com.pe.cloudapi.iam.interfaces.rest.transform.UserResourceAssembler;
@@ -32,6 +37,7 @@ public class UsersController {
 
     private final RegisterUserUseCase registerUser;
     private final ListUsersUseCase listUsers;
+    private final SetUserActiveUseCase setUserActive;
     private final UserResourceAssembler assembler;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -55,5 +61,19 @@ public class UsersController {
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResource> list() {
         return listUsers.execute().stream().map(assembler::toResource).toList();
+    }
+
+    @PatchMapping(value = "/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Disable or re-enable an account",
+            description = "A disabled account cannot sign in. Administrator accounts cannot be disabled.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Account updated"),
+            @ApiResponse(responseCode = "403", description = "Only an administrator can change an account"),
+            @ApiResponse(responseCode = "404", description = "The account does not exist"),
+            @ApiResponse(responseCode = "409", description = "Administrator accounts cannot be disabled")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserResource updateStatus(@PathVariable UUID userId, @Valid @RequestBody UpdateUserStatusResource resource) {
+        return assembler.toResource(setUserActive.execute(userId, resource.active()));
     }
 }

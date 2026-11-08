@@ -64,4 +64,10 @@ public class RoomReadingEntity extends BaseModel {
 
     @Column(name = "received_at", nullable = false)
     private OffsetDateTime receivedAt;
+
+    @Column(name = "forecast_probability") private Float forecastProbability;
+    @Column(name = "forecast_horizon_min") private Integer forecastHorizonMin;
+    @Column(name = "forecast_temperature_limit_c") private Float forecastTemperatureLimitC;
+    @Column(name = "forecast_model_version", length = 64) private String forecastModelVersion;
+    @Column(name = "forecast_generated_at") private OffsetDateTime forecastGeneratedAt;
 }

@@ -18,6 +18,9 @@ public interface SiteRepository {
 
     Optional<Site> findByCode(String code);
 
+    /** Serializa la ingesta de un mismo local dentro de su transaccion. */
+    void lockById(UUID id);
+
     List<Site> findAll();
 
     /**

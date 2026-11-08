@@ -25,10 +25,8 @@ import java.util.stream.Collectors;
  * <p>Es la consulta principal de la aplicación móvil: con una sola llamada se
  * sabe qué salas hay, cómo están y cuán reciente es ese dato.
  *
- * <p>Mientras el producto atienda un solo local, se resuelve contra el local
- * por defecto en vez de exigir que quien llama lo indique. Si no hay ninguno
- * todavía, la lista sale vacía en vez de fallar: es el estado normal antes de
- * que llegue la primera lectura.
+ * <p>Incluye todos los locales activos. Cada recurso conserva su site_id para
+ * que las aplicaciones puedan filtrar por local sin ocultar los demas.
  */
 @Service
 @RequiredArgsConstructor
@@ -42,15 +40,13 @@ public class ListRoomsUseCaseImpl implements ListRoomsUseCase {
 
     @Override
     public List<RoomSnapshot> execute() {
-        return sites.findDefault()
-                .map(site -> {
+        return sites.findAll().stream()
+                .flatMap(site -> {
                     Map<UUID, RoomType> typesById = roomTypes.findAllBySiteId(site.getId()).stream()
                             .collect(Collectors.toMap(RoomType::getId, Function.identity()));
                     return rooms.findActiveBySiteId(site.getId()).stream()
                             .map(room -> new RoomSnapshot(room, readings.findLatest(room.getId()),
-                                    Optional.ofNullable(room.getRoomTypeId()).map(typesById::get)))
-                            .toList();
-                })
-                .orElseGet(List::of);
+                                    Optional.ofNullable(room.getRoomTypeId()).map(typesById::get)));
+                }).toList();
     }
 }

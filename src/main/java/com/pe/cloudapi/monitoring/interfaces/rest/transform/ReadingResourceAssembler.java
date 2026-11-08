@@ -2,7 +2,6 @@ package com.pe.cloudapi.monitoring.interfaces.rest.transform;
 
 import com.pe.cloudapi.monitoring.application.internal.results.IngestResult;
 import com.pe.cloudapi.monitoring.domain.model.commands.IngestReadingsCommand;
-import com.pe.cloudapi.monitoring.domain.model.entities.Device;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.AcousticMetrics;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Climate;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.DataQuality;
@@ -28,8 +27,9 @@ import java.util.List;
 public class ReadingResourceAssembler {
 
     /** Convierte el lote recibido en el comando que espera el caso de uso. */
-    public IngestReadingsCommand toCommand(List<ReadingResource> resources) {
-        return new IngestReadingsCommand(resources.stream().map(this::toReading).toList());
+    public IngestReadingsCommand toCommand(String siteCode, List<ReadingResource> resources) {
+        return new IngestReadingsCommand(siteCode,
+                resources.stream().map(this::toReading).toList());
     }
 
     private IngestReadingsCommand.Reading toReading(ReadingResource resource) {

@@ -15,6 +15,10 @@ import java.util.List;
 @Schema(description = "Lote de lecturas subido por el Edge")
 public record ReadingBatchResource(
 
+        @Schema(description = "Codigo del local del Edge; obligatorio con varios locales",
+                example = "site-1")
+        String siteCode,
+
         @NotEmpty(message = "MONITORING_READING_BATCH_EMPTY")
         @Valid
         List<ReadingResource> readings

@@ -29,14 +29,12 @@ import java.util.UUID;
  * <p>Tres responsabilidades que no son evidentes leyendo el controlador:
  *
  * <ol>
- *   <li><strong>Deduplicar.</strong> El Edge reintenta cuando no confirma la
- *       subida, así que la entrega es <em>at-least-once</em>: en pruebas se
- *       observaron 543 envíos para 540 minutos reales. La base no tiene
- *       restricción {@code UNIQUE} sobre {@code (room_id, ts)} —es deuda
- *       técnica registrada—, así que se hace aquí.</li>
+ *   <li><strong>Actualizar por sala y minuto.</strong> El Edge reintenta y
+ *       recalcula minutos con lotes tardios. El bloqueo del local serializa
+ *       esas escrituras y las nuevas altas dentro de la transaccion.</li>
  *   <li><strong>Autoprovisionar.</strong> El Edge manda códigos de sala sin
- *       haber registrado nada previamente. Local, sala y dispositivo se dan de
- *       alta al vuelo la primera vez que aparecen.</li>
+ *       haber registrado las salas previamente. Sala y dispositivo se dan de
+ *       alta la primera vez que aparecen; el local debe existir.</li>
  *   <li><strong>Reflejar el estado del dispositivo,</strong> sin recalcular sus
  *       contadores: el cloud no ve la secuencia completa de lotes.</li>
  * </ol>
@@ -54,7 +52,8 @@ public class IngestReadingsUseCaseImpl implements IngestReadingsUseCase {
     @Override
     @Transactional
     public IngestResult execute(IngestReadingsCommand command) {
-        UUID siteId = resolveDefaultSite();
+        UUID siteId = resolveSite(command.siteCode());
+        sites.lockById(siteId);
         int inserted = 0;
         int updated = 0;
 
@@ -62,12 +61,17 @@ public class IngestReadingsUseCaseImpl implements IngestReadingsUseCase {
             UUID roomId = resolveRoom(siteId, reading.roomCode());
             syncDevice(reading.device(), roomId);
 
-            if (readings.findByRoomIdAndTs(roomId, reading.ts()).isPresent()) {
+            var existing = readings.findByRoomIdAndTs(roomId, reading.ts());
+            RoomReading replacement = new RoomReading(reading.toRecordCommand(roomId));
+            if (existing.isPresent()) {
+                // El Edge recalcula el minuto cuando llegan lotes tardios.
+                // Conservar su identidad y reemplazar las metricas del minuto.
+                readings.save(replacement.toBuilder().id(existing.get().getId()).build());
                 updated++;
                 continue;
             }
 
-            readings.save(new RoomReading(reading.toRecordCommand(roomId)));
+            readings.save(replacement);
             inserted++;
         }
 
@@ -75,7 +79,8 @@ public class IngestReadingsUseCaseImpl implements IngestReadingsUseCase {
     }
 
     /**
-     * Devuelve el local al que se enganchan las salas.
+     * Resuelve el local declarado por el Edge. Un cliente anterior puede
+     * omitirlo solo cuando existe exactamente un local.
      *
      * <p>No lo crea si no existe: dar de alta un local es una decisión de
      * negocio, y este caso de uso solo guarda lecturas. Inventarse uno haría
@@ -85,10 +90,15 @@ public class IngestReadingsUseCaseImpl implements IngestReadingsUseCase {
      * <p>Se falla en voz alta, que es recuperable, en vez de continuar con un
      * dato inventado, que no lo es.
      */
-    private UUID resolveDefaultSite() {
-        return sites.findDefault()
-                .map(Site::getId)
-                .orElseThrow(MonitoringError.NO_SITE_AVAILABLE::with);
+    private UUID resolveSite(String siteCode) {
+        if (siteCode != null && !siteCode.isBlank()) {
+            return sites.findByCode(siteCode).map(Site::getId)
+                    .orElseThrow(() -> MonitoringError.SITE_NOT_FOUND.with(siteCode));
+        }
+        var available = sites.findAll();
+        if (available.isEmpty()) throw MonitoringError.NO_SITE_AVAILABLE.with();
+        if (available.size() > 1) throw MonitoringError.SITE_CODE_REQUIRED.with();
+        return available.getFirst().getId();
     }
 
     /**

@@ -61,7 +61,8 @@ public class ReadingsController {
     @PreAuthorize("hasAuthority('SCOPE_readings:write')")
     public ResponseEntity<IngestResultResource> ingest(
             @Valid @RequestBody ReadingBatchResource batch) {
-        var result = ingestReadingsUseCase.execute(assembler.toCommand(batch.readings()));
+        var result = ingestReadingsUseCase.execute(
+                assembler.toCommand(batch.siteCode(), batch.readings()));
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(assembler.toResource(result));
     }

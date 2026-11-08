@@ -40,6 +40,9 @@ public enum MonitoringError implements ErrorCatalog {
     NO_SITE_AVAILABLE(ErrorKind.CONFLICT,
             "No site is registered, so rooms cannot be attached to one"),
 
+    SITE_CODE_REQUIRED(ErrorKind.VALIDATION,
+            "site_code is required when more than one site is registered"),
+
     READING_BATCH_EMPTY(ErrorKind.VALIDATION,
             "A batch must carry at least one reading"),
 

@@ -1,6 +1,5 @@
 package com.pe.cloudapi.monitoring.domain.model.commands;
 
-import com.pe.cloudapi.monitoring.domain.model.entities.Device;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.AcousticMetrics;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Climate;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.DataQuality;
@@ -24,9 +23,10 @@ import java.util.UUID;
  * {@link RecordRoomReadingCommand} con
  * {@link Reading#toRecordCommand(java.util.UUID)}.
  *
+ * @param siteCode local declarado por el Edge; nulo para clientes anteriores
  * @param readings los minutos que llegaron en el lote
  */
-public record IngestReadingsCommand(List<Reading> readings) {
+public record IngestReadingsCommand(String siteCode, List<Reading> readings) {
 
     /**
      * Un minuto de una sala.

@@ -2,12 +2,12 @@ package com.pe.cloudapi.monitoring.interfaces.rest.transform;
 
 import com.pe.cloudapi.monitoring.application.internal.results.IngestResult;
 import com.pe.cloudapi.monitoring.domain.model.commands.IngestReadingsCommand;
-import com.pe.cloudapi.monitoring.domain.model.entities.Device;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.AcousticMetrics;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Climate;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.DataQuality;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Occupancy;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThermalComfort;
+import com.pe.cloudapi.monitoring.domain.model.valueobjects.TemperatureForecast;
 import com.pe.cloudapi.monitoring.interfaces.rest.resources.IngestResultResource;
 import com.pe.cloudapi.monitoring.interfaces.rest.resources.ReadingResource;
 
@@ -27,8 +27,9 @@ import java.util.List;
 public class ReadingResourceAssembler {
 
     /** Convierte el lote recibido en el comando que espera el caso de uso. */
-    public IngestReadingsCommand toCommand(List<ReadingResource> resources) {
-        return new IngestReadingsCommand(resources.stream().map(this::toReading).toList());
+    public IngestReadingsCommand toCommand(String siteCode, List<ReadingResource> resources) {
+        return new IngestReadingsCommand(siteCode,
+                resources.stream().map(this::toReading).toList());
     }
 
     private IngestReadingsCommand.Reading toReading(ReadingResource resource) {
@@ -41,7 +42,8 @@ public class ReadingResourceAssembler {
                 toClimate(resource.climate()),
                 toComfort(resource.comfort()),
                 toOccupancy(resource.occupancy()),
-                toQuality(resource.quality()));
+                toQuality(resource.quality()),
+                toForecast(resource.forecast()));
     }
 
     /** Convierte el resultado del caso de uso al recurso de respuesta. */
@@ -82,5 +84,11 @@ public class ReadingResourceAssembler {
     private DataQuality toQuality(ReadingResource.Quality q) {
         if (q == null) return DataQuality.unknown();
         return new DataQuality(q.batches(), q.expected());
+    }
+
+    private TemperatureForecast toForecast(ReadingResource.Forecast f) {
+        if (f == null) return null;
+        return new TemperatureForecast(f.probability(), f.horizonMin(),
+                f.temperatureLimitC(), f.modelVersion(), f.generatedAt());
     }
 }

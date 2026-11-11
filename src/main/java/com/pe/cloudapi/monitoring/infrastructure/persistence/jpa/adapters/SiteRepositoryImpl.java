@@ -1,6 +1,7 @@
 package com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.adapters;
 
 import com.pe.cloudapi.monitoring.domain.model.aggregates.Site;
+import com.pe.cloudapi.monitoring.domain.model.errors.MonitoringError;
 import com.pe.cloudapi.monitoring.domain.ports.out.SiteRepository;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities.SiteEntity;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.mappers.SiteMapper;
@@ -43,6 +44,11 @@ public class SiteRepositoryImpl implements SiteRepository {
     @Override
     public Optional<Site> findByCode(String code) {
         return jpa.findByCode(code).map(mapper::toDomain);
+    }
+
+    @Override
+    public void lockById(UUID id) {
+        jpa.findLockedById(id).orElseThrow(() -> MonitoringError.SITE_NOT_FOUND.with(id));
     }
 
     @Override

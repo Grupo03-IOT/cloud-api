@@ -2,6 +2,7 @@ package com.pe.cloudapi.iam.interfaces.rest;
 
 import com.pe.cloudapi.iam.application.internal.ports.in.ListUsersUseCase;
 import com.pe.cloudapi.iam.application.internal.ports.in.RegisterUserUseCase;
+import com.pe.cloudapi.iam.application.internal.ports.in.SetUserActiveUseCase;
 import com.pe.cloudapi.iam.domain.model.aggregates.User;
 import com.pe.cloudapi.iam.domain.model.valueobjects.Role;
 import com.pe.cloudapi.iam.interfaces.rest.transform.UserResourceAssembler;
@@ -21,6 +22,8 @@ import java.util.UUID;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import org.springframework.http.MediaType;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -32,6 +35,7 @@ class UsersControllerTest extends WebLayerTestSupport {
 
     @MockitoBean private RegisterUserUseCase registerUser;
     @MockitoBean private ListUsersUseCase listUsers;
+    @MockitoBean private SetUserActiveUseCase setUserActive;
 
     @Test
     @DisplayName("200: an administrator lists accounts with their roles and no password")
@@ -54,5 +58,37 @@ class UsersControllerTest extends WebLayerTestSupport {
                 .andExpect(status().isForbidden());
 
         verifyNoInteractions(listUsers);
+    }
+
+    @Test
+    @DisplayName("200: an administrator disables a member")
+    void adminDisablesMember() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(setUserActive.execute(id, false)).thenReturn(User.builder()
+                .id(id).email("member@sensework.test").passwordHash("hash")
+                .displayName("Member").active(false).roles(Set.of(Role.MEMBER)).build());
+
+        mockMvc.perform(patch("/api/v1/users/" + id).with(admin())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"active\":false}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active").value(false));
+    }
+
+    @Test
+    @DisplayName("403: a MEMBER cannot change an account")
+    void memberCannotDisable() throws Exception {
+        mockMvc.perform(patch("/api/v1/users/" + UUID.randomUUID()).with(member())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"active\":false}"))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(setUserActive);
+    }
+
+    @Test
+    @DisplayName("400: the active flag is required")
+    void activeIsRequired() throws Exception {
+        mockMvc.perform(patch("/api/v1/users/" + UUID.randomUUID()).with(admin())
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
     }
 }

@@ -1,11 +1,11 @@
 package com.pe.cloudapi.monitoring.domain.model.commands;
 
-import com.pe.cloudapi.monitoring.domain.model.entities.Device;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.AcousticMetrics;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Climate;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.DataQuality;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Occupancy;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThermalComfort;
+import com.pe.cloudapi.monitoring.domain.model.valueobjects.TemperatureForecast;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -24,9 +24,10 @@ import java.util.UUID;
  * {@link RecordRoomReadingCommand} con
  * {@link Reading#toRecordCommand(java.util.UUID)}.
  *
+ * @param siteCode local declarado por el Edge; nulo para clientes anteriores
  * @param readings los minutos que llegaron en el lote
  */
-public record IngestReadingsCommand(List<Reading> readings) {
+public record IngestReadingsCommand(String siteCode, List<Reading> readings) {
 
     /**
      * Un minuto de una sala.
@@ -49,8 +50,15 @@ public record IngestReadingsCommand(List<Reading> readings) {
             Climate climate,
             ThermalComfort comfort,
             Occupancy occupancy,
-            DataQuality quality
+            DataQuality quality,
+            TemperatureForecast forecast
     ) {
+
+        public Reading(String roomCode, OffsetDateTime ts, int periodS, Device device,
+                AcousticMetrics acoustic, Climate climate, ThermalComfort comfort,
+                Occupancy occupancy, DataQuality quality) {
+            this(roomCode, ts, periodS, device, acoustic, climate, comfort, occupancy, quality, null);
+        }
 
         /**
          * Produce el comando que sí recibe el agregado, ya con la sala
@@ -65,7 +73,7 @@ public record IngestReadingsCommand(List<Reading> readings) {
          */
         public RecordRoomReadingCommand toRecordCommand(UUID roomId) {
             return new RecordRoomReadingCommand(
-                    roomId, ts, periodS, acoustic, climate, comfort, occupancy, quality);
+                    roomId, ts, periodS, acoustic, climate, comfort, occupancy, quality, forecast);
         }
 
         /**

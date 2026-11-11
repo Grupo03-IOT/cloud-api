@@ -5,6 +5,7 @@ import com.pe.cloudapi.monitoring.domain.model.valueobjects.Climate;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.DataQuality;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Occupancy;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThermalComfort;
+import com.pe.cloudapi.monitoring.domain.model.valueobjects.TemperatureForecast;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -23,5 +24,12 @@ public record RecordRoomReadingCommand(
         Climate climate,
         ThermalComfort comfort,
         Occupancy occupancy,
-        DataQuality quality
-) {}
+        DataQuality quality,
+        TemperatureForecast forecast
+) {
+    public RecordRoomReadingCommand(UUID roomId, OffsetDateTime ts, int periodS,
+            AcousticMetrics acoustic, Climate climate, ThermalComfort comfort,
+            Occupancy occupancy, DataQuality quality) {
+        this(roomId, ts, periodS, acoustic, climate, comfort, occupancy, quality, null);
+    }
+}

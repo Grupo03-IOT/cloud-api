@@ -45,6 +45,18 @@ public class User {
      * @throws com.pe.cloudapi.shared.domain.model.errors.DomainException
      *         {@code IAM_ACCOUNT_DISABLED} si la cuenta está desactivada
      */
+    /**
+     * Activa o desactiva la cuenta. Una cuenta de administrador no se desactiva: dejaría al local sin quien lo gestione.
+     *
+     * @param active {@code true} para reactivar, {@code false} para desactivar
+     */
+    public void changeActive(boolean active) {
+        if (!active && hasRole(Role.ADMIN)) {
+            throw IamError.ADMIN_CANNOT_BE_DISABLED.with();
+        }
+        this.active = active;
+    }
+
     public void ensureCanSignIn() {
         if (!active) {
             throw IamError.ACCOUNT_DISABLED.with();

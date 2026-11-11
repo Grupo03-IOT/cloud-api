@@ -3,6 +3,8 @@ package com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.repositories;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities.SiteEntity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -21,6 +23,10 @@ public interface SiteJpaRepository extends JpaRepository<SiteEntity, UUID> {
             WHERE s.code = :code AND s.deletedAt IS NULL
             """)
     Optional<SiteEntity> findByCode(String code);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT s FROM SiteEntity s WHERE s.id = :id AND s.deletedAt IS NULL")
+    Optional<SiteEntity> findLockedById(UUID id);
 
     /**
      * Los locales vivos, del más antiguo al más reciente.

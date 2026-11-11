@@ -30,7 +30,7 @@ class DeviceTest {
     }
 
     @Test
-    @DisplayName("ignores a report with an older sequence so its state never goes back")
+    @DisplayName("ignores an older report so its state never goes back")
     void ignoresOutOfOrderReport() {
         Device device = new Device(new RegisterDeviceCommand("esp32-sala-01", roomId));
         device.handle(new SyncDeviceStateCommand("esp32-sala-01", roomId, "1.2.0", NOW, 42L, 3L));
@@ -42,6 +42,20 @@ class DeviceTest {
         assertThat(device.getLastSeq()).isEqualTo(42L);
         assertThat(device.getFwVersion()).isEqualTo("1.2.0");
         assertThat(device.getLastSeen()).isEqualTo(NOW);
+    }
+
+    @Test
+    @DisplayName("accepts a newer report whose sequence restarted after the device rebooted")
+    void acceptsReportAfterReboot() {
+        Device device = new Device(new RegisterDeviceCommand("esp32-sala-01", roomId));
+        device.handle(new SyncDeviceStateCommand("esp32-sala-01", roomId, "1.2.0", NOW, 8000L, 3L));
+
+        device.handle(new SyncDeviceStateCommand(
+                "esp32-sala-01", roomId, "1.2.0", NOW.plusMinutes(2), 5L, 3L));
+
+        assertThat(device.getLastSeq()).isEqualTo(5L);
+        assertThat(device.getLastSeen()).isEqualTo(NOW.plusMinutes(2));
+        assertThat(device.isSilentAt(NOW.plusMinutes(3))).isFalse();
     }
 
     @Test

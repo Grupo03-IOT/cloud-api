@@ -43,7 +43,8 @@ public class ReadingResourceAssembler {
                 toComfort(resource.comfort()),
                 toOccupancy(resource.occupancy()),
                 toQuality(resource.quality()),
-                toForecast(resource.forecast()));
+                toForecast(resource.forecast()),
+                SensorResourceAssembler.toDomain(resource.sensors()));
     }
 
     /** Convierte el resultado del caso de uso al recurso de respuesta. */

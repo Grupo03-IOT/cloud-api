@@ -6,6 +6,7 @@ import com.pe.cloudapi.monitoring.domain.model.aggregates.Site;
 import com.pe.cloudapi.monitoring.domain.model.commands.CreateSiteCommand;
 import com.pe.cloudapi.monitoring.domain.model.commands.IngestReadingsCommand;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Climate;
+import com.pe.cloudapi.monitoring.domain.model.valueobjects.SensorMetrics;
 import com.pe.cloudapi.monitoring.domain.ports.out.RoomReadingRepository;
 import com.pe.cloudapi.monitoring.domain.ports.out.RoomRepository;
 import com.pe.cloudapi.monitoring.domain.ports.out.SiteRepository;
@@ -32,7 +33,9 @@ class ReadingIngestionIntegrationTest {
     IngestReadingsCommand command(String site, float temperature) {
         var reading = new IngestReadingsCommand.Reading("sala-01",
                 OffsetDateTime.parse("2026-01-01T12:00:00Z"), 60,
-                null, null, new Climate(temperature, 50f), null, null, null);
+                null, null, new Climate(temperature, 50f), null, null, null, null,
+                new SensorMetrics(OffsetDateTime.parse("2026-01-01T12:00:58Z"), true,
+                        154.14f, 873, false, true, false));
         return new IngestReadingsCommand(site, List.of(reading));
     }
 
@@ -54,6 +57,9 @@ class ReadingIngestionIntegrationTest {
         var corrected = readings.findLatest(roomB.getId()).orElseThrow();
         assertEquals(previous.getId(), corrected.getId());
         assertEquals(27f, corrected.getClimate().tempC());
+        assertEquals(873, corrected.getSensors().potentiometer());
+        assertEquals(154.14f, corrected.getSensors().distanceCm());
+        assertTrue(corrected.getSensors().button2());
         assertEquals(20f, readings.findLatest(roomA.getId()).orElseThrow().getClimate().tempC());
         assertEquals(1, readings.findInRange(roomB.getId(), previous.getTs().minusMinutes(1),
                 previous.getTs().plusMinutes(1)).size());

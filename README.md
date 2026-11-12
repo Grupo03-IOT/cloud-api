@@ -45,5 +45,13 @@ concurrentes y el alta automatica de sus salas.
 
 ## Verificacion
 
+Los agregados pueden incluir `sensors` con `sampled_at`, `movement`,
+`distance_cm` (nulo si no hubo eco), `potentiometer` (ADC 0–4095) y los
+booleanos `button1`, `button2`, `button3`. La migracion V4 anade columnas
+opcionales y conserva las lecturas existentes. Los datos aparecen en
+`GET /api/v1/rooms` bajo `latest.sensors` y en el historial de la sala.
+La temperatura y humedad siguen en `climate`; no se generan valores de ruido
+a partir del potenciometro. La guia de prueba USB esta en `edge-api/docs/usb-local.md`.
+
 Con PostgreSQL disponible: `./gradlew test`. La prueba de carga del contexto usa
 la base configurada en `DB_URL`, `DB_USER` y `DB_PASSWORD`; usar una base de pruebas.

@@ -6,6 +6,7 @@ import com.pe.cloudapi.monitoring.domain.model.valueobjects.DataQuality;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Occupancy;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThermalComfort;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.TemperatureForecast;
+import com.pe.cloudapi.monitoring.domain.model.valueobjects.SensorMetrics;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -51,13 +52,20 @@ public record IngestReadingsCommand(String siteCode, List<Reading> readings) {
             ThermalComfort comfort,
             Occupancy occupancy,
             DataQuality quality,
-            TemperatureForecast forecast
+            TemperatureForecast forecast,
+            SensorMetrics sensors
     ) {
 
         public Reading(String roomCode, OffsetDateTime ts, int periodS, Device device,
                 AcousticMetrics acoustic, Climate climate, ThermalComfort comfort,
                 Occupancy occupancy, DataQuality quality) {
-            this(roomCode, ts, periodS, device, acoustic, climate, comfort, occupancy, quality, null);
+            this(roomCode, ts, periodS, device, acoustic, climate, comfort, occupancy, quality, null, null);
+        }
+
+        public Reading(String roomCode, OffsetDateTime ts, int periodS, Device device,
+                AcousticMetrics acoustic, Climate climate, ThermalComfort comfort,
+                Occupancy occupancy, DataQuality quality, TemperatureForecast forecast) {
+            this(roomCode, ts, periodS, device, acoustic, climate, comfort, occupancy, quality, forecast, null);
         }
 
         /**
@@ -73,7 +81,7 @@ public record IngestReadingsCommand(String siteCode, List<Reading> readings) {
          */
         public RecordRoomReadingCommand toRecordCommand(UUID roomId) {
             return new RecordRoomReadingCommand(
-                    roomId, ts, periodS, acoustic, climate, comfort, occupancy, quality, forecast);
+                    roomId, ts, periodS, acoustic, climate, comfort, occupancy, quality, forecast, sensors);
         }
 
         /**

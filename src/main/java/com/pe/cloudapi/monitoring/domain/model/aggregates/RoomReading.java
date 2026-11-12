@@ -7,6 +7,7 @@ import com.pe.cloudapi.monitoring.domain.model.valueobjects.DataQuality;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Occupancy;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThermalComfort;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.TemperatureForecast;
+import com.pe.cloudapi.monitoring.domain.model.valueobjects.SensorMetrics;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,6 +44,7 @@ public class RoomReading {
     private final DataQuality quality;
     private final OffsetDateTime receivedAt;
     private final TemperatureForecast forecast;
+    private final SensorMetrics sensors;
 
     /**
      * Registra el agregado de un minuto tal como lo sube el Edge.
@@ -68,6 +70,7 @@ public class RoomReading {
         this.occupancy = command.occupancy() == null ? Occupancy.vacant() : command.occupancy();
         this.quality = command.quality() == null ? DataQuality.unknown() : command.quality();
         this.forecast = command.forecast();
+        this.sensors = command.sensors();
         this.receivedAt = OffsetDateTime.now();
     }
 

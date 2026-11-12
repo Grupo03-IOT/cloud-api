@@ -48,12 +48,19 @@ public record ReadingResource(
         @Valid Occupancy occupancy,
         @Valid Quality quality
         , @Valid Forecast forecast
+        , @Valid SensorResource sensors
 ) {
 
     public ReadingResource(String roomId, OffsetDateTime ts, Integer periodS,
             Device device, Acoustic acoustic, Climate climate, Comfort comfort,
             Occupancy occupancy, Quality quality) {
-        this(roomId, ts, periodS, device, acoustic, climate, comfort, occupancy, quality, null);
+        this(roomId, ts, periodS, device, acoustic, climate, comfort, occupancy, quality, null, null);
+    }
+
+    public ReadingResource(String roomId, OffsetDateTime ts, Integer periodS,
+            Device device, Acoustic acoustic, Climate climate, Comfort comfort,
+            Occupancy occupancy, Quality quality, Forecast forecast) {
+        this(roomId, ts, periodS, device, acoustic, climate, comfort, occupancy, quality, forecast, null);
     }
 
     /**

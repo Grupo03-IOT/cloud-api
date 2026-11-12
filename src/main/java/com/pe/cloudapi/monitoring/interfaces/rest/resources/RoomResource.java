@@ -73,6 +73,7 @@ public record RoomResource(
             boolean complete,
 
             @Schema(description = "Optional model forecast associated with this reading")
-            ReadingResource.Forecast forecast
+            ReadingResource.Forecast forecast,
+            SensorResource sensors
     ) {}
 }

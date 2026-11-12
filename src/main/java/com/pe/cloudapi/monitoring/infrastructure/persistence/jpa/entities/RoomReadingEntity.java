@@ -65,6 +65,14 @@ public class RoomReadingEntity extends BaseModel {
     @Column(name = "received_at", nullable = false)
     private OffsetDateTime receivedAt;
 
+    @Column(name = "sensor_sampled_at") private OffsetDateTime sensorSampledAt;
+    @Column(name = "sensor_movement") private Boolean sensorMovement;
+    @Column(name = "sensor_distance_cm") private Float sensorDistanceCm;
+    @Column(name = "sensor_potentiometer") private Integer sensorPotentiometer;
+    @Column(name = "sensor_button1") private Boolean sensorButton1;
+    @Column(name = "sensor_button2") private Boolean sensorButton2;
+    @Column(name = "sensor_button3") private Boolean sensorButton3;
+
     @Column(name = "forecast_probability") private Float forecastProbability;
     @Column(name = "forecast_horizon_min") private Integer forecastHorizonMin;
     @Column(name = "forecast_temperature_limit_c") private Float forecastTemperatureLimitC;

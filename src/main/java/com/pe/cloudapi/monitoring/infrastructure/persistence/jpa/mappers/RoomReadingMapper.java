@@ -7,6 +7,7 @@ import com.pe.cloudapi.monitoring.domain.model.valueobjects.DataQuality;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.Occupancy;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.ThermalComfort;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.TemperatureForecast;
+import com.pe.cloudapi.monitoring.domain.model.valueobjects.SensorMetrics;
 import com.pe.cloudapi.monitoring.infrastructure.persistence.jpa.entities.RoomReadingEntity;
 
 import org.springframework.stereotype.Component;
@@ -35,6 +36,8 @@ public class RoomReadingMapper {
                         e.getForecastProbability(), e.getForecastHorizonMin(),
                         e.getForecastTemperatureLimitC(), e.getForecastModelVersion(),
                         e.getForecastGeneratedAt()))
+                .sensors(e.getSensorSampledAt() == null ? null : new SensorMetrics(
+                        e.getSensorSampledAt(), e.getSensorMovement(), e.getSensorDistanceCm(), e.getSensorPotentiometer(), e.getSensorButton1(), e.getSensorButton2(), e.getSensorButton3()))
                 .receivedAt(e.getReceivedAt())
                 .build();
     }
@@ -76,6 +79,14 @@ public class RoomReadingMapper {
         e.setForecastTemperatureLimitC(f == null ? null : f.temperatureLimitC());
         e.setForecastModelVersion(f == null ? null : f.modelVersion());
         e.setForecastGeneratedAt(f == null ? null : f.generatedAt());
+        SensorMetrics s = d.getSensors();
+        e.setSensorSampledAt(s == null ? null : s.sampledAt());
+        e.setSensorMovement(s == null ? null : s.movement());
+        e.setSensorDistanceCm(s == null ? null : s.distanceCm());
+        e.setSensorPotentiometer(s == null ? null : s.potentiometer());
+        e.setSensorButton1(s == null ? null : s.button1());
+        e.setSensorButton2(s == null ? null : s.button2());
+        e.setSensorButton3(s == null ? null : s.button3());
         return e;
     }
 }

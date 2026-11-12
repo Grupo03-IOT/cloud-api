@@ -52,6 +52,7 @@ public class RoomResourceAssembler {
                         reading.getForecast().horizonMin(),
                         reading.getForecast().temperatureLimitC(),
                         reading.getForecast().modelVersion(),
-                        reading.getForecast().generatedAt()));
+                        reading.getForecast().generatedAt()),
+                SensorResourceAssembler.toResource(reading.getSensors()));
     }
 }

@@ -23,8 +23,10 @@ El servicio usa el puerto 8080; Swagger esta en `/swagger-ui.html`.
 4. Crear el local con `POST /api/v1/sites`:
    `{"code":"site-1","name":"ZenRoom laboratorio","address":"Prueba local","timezone":"America/Lima"}`.
 5. Emitir la credencial con `POST /api/v1/credentials`:
-   `{"code":"edge-1","scopes":["readings:write","thresholds:read","edges:heartbeat"]}`.
+   `{"code":"edge-1","scopes":["readings:write","thresholds:read","edges:heartbeat","alerts:write"]}`.
    Guardar `api_key` como `CLOUD_API_KEY` en el proceso del Edge; se muestra una vez.
+   Las credenciales emitidas antes de `alerts:write` no lo tienen: hay que crear
+   una nueva y revocar la anterior para que el Edge pueda subir alertas.
 6. Usar `SITE_CODE=site-1` en el Edge. El ESP32 envia sus lecturas al puerto 5000
    de la laptop; la credencial del Cloud permanece en el Edge.
 
@@ -42,6 +44,16 @@ Un reenvio del mismo `(room_id, ts)` actualiza las metricas conservando el UUID 
 la lectura. Asi llegan al Cloud las correcciones de minutos con lotes tardios.
 La transaccion bloquea el local durante la ingesta para serializar reintentos
 concurrentes y el alta automatica de sus salas.
+
+## Contrato de alertas
+
+`POST /api/v1/alerts/events` (permiso `alerts:write`) recibe
+`{"site_code":"site-1","events":[{"source_key":"edge-1:42","room_id":"sala-03",...}]}`.
+`room_id` es el codigo de sala, igual que en las lecturas, y `site_code` se
+resuelve como en la ingesta. `source_key` es la clave de idempotencia: repetirlo
+actualiza la alerta (por ejemplo, la cierra con `closed_by = AUTO`) en vez de
+duplicarla. Si una sala no existe se rechaza el lote entero con
+`MONITORING_ROOM_NOT_FOUND`.
 
 ## Verificacion
 

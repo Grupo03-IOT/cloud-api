@@ -46,4 +46,15 @@ public interface MonitoringContextFacade {
      *         {@code MONITORING_SITE_NOT_FOUND} si el local no existe
      */
     List<RoomContext> roomsOfSite(UUID siteId);
+
+    /**
+     * El id de una sala por el código que maneja el Edge, sin darla de alta.
+     *
+     * @param siteCode local; puede faltar si solo hay uno registrado
+     * @param roomCode código de la sala
+     * @throws com.pe.cloudapi.shared.domain.model.errors.DomainException
+     *         {@code MONITORING_ROOM_NOT_FOUND} si la sala no existe, o un error
+     *         de local si no se puede determinar
+     */
+    UUID roomIdByCode(String siteCode, String roomCode);
 }

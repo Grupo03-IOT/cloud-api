@@ -1,6 +1,7 @@
 package com.pe.cloudapi.support;
 
 import com.pe.cloudapi.iam.application.internal.ports.in.AuthenticateApiKeyUseCase;
+import com.pe.cloudapi.iam.application.internal.ports.in.IsUserActiveUseCase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
@@ -20,6 +21,10 @@ public abstract class WebLayerTestSupport {
 
     @MockitoBean
     protected AuthenticateApiKeyUseCase authenticateApiKey;
+
+    /** The JWT converter asks it whether the account behind a real token is still active. */
+    @MockitoBean
+    protected IsUserActiveUseCase isUserActive;
 
     protected static JwtRequestPostProcessor admin() {
         return jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));

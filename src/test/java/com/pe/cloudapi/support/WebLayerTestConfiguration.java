@@ -1,9 +1,11 @@
 package com.pe.cloudapi.support;
 
 import com.pe.cloudapi.alerting.infrastructure.configuration.AlertingErrorCatalogConfiguration;
+import com.pe.cloudapi.iam.infrastructure.authentication.ActiveAccountJwtConverter;
 import com.pe.cloudapi.iam.infrastructure.authentication.ApiKeyAuthenticationFilter;
 import com.pe.cloudapi.iam.infrastructure.authentication.JwtConfiguration;
 import com.pe.cloudapi.iam.infrastructure.authentication.SecurityConfiguration;
+import com.pe.cloudapi.iam.infrastructure.authentication.UserStatusCache;
 import com.pe.cloudapi.iam.infrastructure.configuration.IamErrorCatalogConfiguration;
 import com.pe.cloudapi.insights.infrastructure.configuration.InsightsErrorCatalogConfiguration;
 import com.pe.cloudapi.monitoring.infrastructure.configuration.MonitoringErrorCatalogConfiguration;
@@ -34,6 +36,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
         SecurityConfiguration.class,
         JwtConfiguration.class,
         ApiKeyAuthenticationFilter.class,
+        ActiveAccountJwtConverter.class,
+        UserStatusCache.class,
         SecurityErrorResponder.class,
         GlobalExceptionHandler.class,
         ErrorCatalogs.class,

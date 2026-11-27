@@ -34,7 +34,9 @@ public class AuthController {
                     find out which accounts exist.""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Signed in"),
-            @ApiResponse(responseCode = "400", description = "Credentials are not correct")
+            @ApiResponse(responseCode = "400", description = "Malformed body: missing or invalid email or password"),
+            @ApiResponse(responseCode = "401", description = "IAM_INVALID_CREDENTIALS for an unknown email "
+                    + "or a wrong password (same answer for both), or IAM_ACCOUNT_DISABLED")
     })
     public TokenResource login(@Valid @RequestBody SignInResource resource) {
         IssuedToken token = authenticateUser.execute(resource.email(), resource.password());

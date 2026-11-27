@@ -57,6 +57,8 @@ management:
 app:
   iam:
     access-token-ttl: ${ACCESS_TOKEN_TTL:PT1H}
+    # Cuánto se recuerda que una cuenta sigue activa antes de volver a consultarla.
+    user-status-ttl: ${USER_STATUS_TTL:PT30S}
     api-key-prefix: ${API_KEY_PREFIX:comfort_live_}
     signing-key: ${JWT_SIGNING_KEY:}
   cors:

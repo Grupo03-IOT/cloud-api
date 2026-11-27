@@ -149,7 +149,11 @@ public class GlobalExceptionHandler {
      * cajón de sastre y <strong>un 401 saldría como 500</strong>.
      */
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleUnauthenticated(HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleUnauthenticated(AuthenticationException ex,
+                                                               HttpServletRequest request) {
+        if (ex instanceof CatalogAuthenticationException catalogued) {
+            return respond(catalogued.getError(), catalogued.getMessage(), request);
+        }
         return transport(TransportError.UNAUTHORIZED, request);
     }
 

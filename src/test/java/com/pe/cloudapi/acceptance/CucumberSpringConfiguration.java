@@ -1,6 +1,7 @@
 package com.pe.cloudapi.acceptance;
 
 import com.pe.cloudapi.iam.application.internal.ports.in.AuthenticateApiKeyUseCase;
+import com.pe.cloudapi.iam.application.internal.ports.in.IsUserActiveUseCase;
 import com.pe.cloudapi.monitoring.application.internal.ports.in.CreateRoomTypeUseCase;
 import com.pe.cloudapi.monitoring.application.internal.ports.in.ListRoomTypesUseCase;
 import com.pe.cloudapi.monitoring.application.internal.ports.in.ListSitesUseCase;
@@ -33,4 +34,5 @@ public class CucumberSpringConfiguration {
     @MockitoBean private CreateRoomTypeUseCase createRoomType;
     @MockitoBean private ListRoomTypesUseCase listRoomTypes;
     @MockitoBean private AuthenticateApiKeyUseCase authenticateApiKey;
+    @MockitoBean private IsUserActiveUseCase isUserActive;
 }

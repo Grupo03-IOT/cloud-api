@@ -11,7 +11,9 @@ public enum Scope {
 
     THRESHOLDS_READ("thresholds:read"),
 
-    EDGES_HEARTBEAT("edges:heartbeat");
+    EDGES_HEARTBEAT("edges:heartbeat"),
+
+    ALERTS_WRITE("alerts:write");
 
     private final String code;
 

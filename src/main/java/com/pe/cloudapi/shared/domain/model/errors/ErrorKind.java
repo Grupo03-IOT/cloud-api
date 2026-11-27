@@ -11,6 +11,9 @@ public enum ErrorKind {
 
     VALIDATION,
 
+    /** Quien llama no está identificado, o su identidad ya no vale. */
+    UNAUTHENTICATED,
+
     NOT_FOUND,
 
     CONFLICT,

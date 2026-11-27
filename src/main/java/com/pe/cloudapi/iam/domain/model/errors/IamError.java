@@ -15,10 +15,14 @@ public enum IamError implements ErrorCatalog {
      * A propósito no dice si falló el correo o la contraseña: distinguirlo
      * permitiría averiguar qué cuentas existen probando correos.
      */
-    INVALID_CREDENTIALS(ErrorKind.VALIDATION,
+    INVALID_CREDENTIALS(ErrorKind.UNAUTHENTICATED,
             "Email or password is not correct"),
 
-    ACCOUNT_DISABLED(ErrorKind.CONFLICT,
+    /**
+     * Se devuelve al iniciar sesión con la contraseña correcta y en cada
+     * petición con un token emitido antes de desactivar la cuenta.
+     */
+    ACCOUNT_DISABLED(ErrorKind.UNAUTHENTICATED,
             "This account is disabled"),
 
     ADMIN_CANNOT_BE_DISABLED(ErrorKind.CONFLICT,

@@ -47,7 +47,16 @@ public enum MonitoringError implements ErrorCatalog {
             "A batch must carry at least one reading"),
 
     READING_PERIOD_REQUIRED(ErrorKind.VALIDATION,
-            "The period is required: assuming it would skew the energy averages");
+            "The period is required: assuming it would skew the energy averages"),
+
+    DISCOMFORT_TOO_FREQUENT(ErrorKind.CONFLICT,
+            "You already reported %s in this room at %s; wait 10 minutes between reports"),
+
+    UNKNOWN_DISCOMFORT_CATEGORY(ErrorKind.VALIDATION,
+            "'%s' is not a discomfort category: NOISE, WARM or COLD"),
+
+    DISCOMFORT_COMMENT_TOO_LONG(ErrorKind.VALIDATION,
+            "The comment cannot be longer than 500 characters");
 
     private static final String PREFIX = "MONITORING";
 

@@ -13,9 +13,11 @@ import java.util.UUID;
  * @param category motivo
  * @param from     creado desde, inclusive
  * @param to       creado hasta, inclusive
+ * @param discrepancy {@code true}: solo con discrepancia; {@code false}: solo sin ella
  */
 public record ListDiscomfortReportsQuery(UUID roomId, DiscomfortCategory category,
-                                         OffsetDateTime from, OffsetDateTime to) {
+                                         OffsetDateTime from, OffsetDateTime to,
+                                         Boolean discrepancy) {
 
     public ListDiscomfortReportsQuery {
         if (from != null && to != null && from.isAfter(to)) {
@@ -24,6 +26,6 @@ public record ListDiscomfortReportsQuery(UUID roomId, DiscomfortCategory categor
     }
 
     public static ListDiscomfortReportsQuery between(OffsetDateTime from, OffsetDateTime to) {
-        return new ListDiscomfortReportsQuery(null, null, from, to);
+        return new ListDiscomfortReportsQuery(null, null, from, to, null);
     }
 }

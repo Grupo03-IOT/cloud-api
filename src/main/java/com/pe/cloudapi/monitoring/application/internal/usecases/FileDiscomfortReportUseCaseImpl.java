@@ -33,6 +33,7 @@ public class FileDiscomfortReportUseCaseImpl implements FileDiscomfortReportUseC
     private final RoomRepository rooms;
     private final RoomReadingRepository readings;
     private final DiscomfortReportRepository reports;
+    private final RoomDiscomfortReports roomReports;
 
     @Override
     @Transactional
@@ -48,6 +49,6 @@ public class FileDiscomfortReportUseCaseImpl implements FileDiscomfortReportUseC
         DiscomfortReport saved = reports.save(report);
         log.info("discomfort.reported id={} room={} category={} withReading={}",
                 saved.getId(), room.getCode(), saved.getCategory(), saved.getReading() != null);
-        return new RoomDiscomfortReport(saved, room.getCode());
+        return roomReports.of(saved);
     }
 }

@@ -28,10 +28,11 @@ public class DiscomfortReportResourceAssembler {
     }
 
     public ListDiscomfortReportsQuery toQuery(UUID roomId, String category,
-                                              OffsetDateTime from, OffsetDateTime to) {
+                                              OffsetDateTime from, OffsetDateTime to,
+                                              Boolean discrepancy) {
         return new ListDiscomfortReportsQuery(roomId,
                 category == null || category.isBlank() ? null : DiscomfortCategory.fromCode(category),
-                from, to);
+                from, to, discrepancy);
     }
 
     public DiscomfortReportResource toResource(RoomDiscomfortReport result) {
@@ -46,11 +47,14 @@ public class DiscomfortReportResourceAssembler {
                 report.getComment(),
                 report.getCreatedAt(),
                 reading == null ? null : new DiscomfortReportResource.Reading(
-                        reading.ts(), reading.laeq(), reading.tempC(), reading.rhPct(), reading.occupiedPct()));
+                        reading.ts(), reading.laeq(), reading.tempC(), reading.rhPct(), reading.occupiedPct()),
+                result.hasDiscrepancy(),
+                result.discrepancyReason() == null ? null : result.discrepancyReason().name());
     }
 
     public DiscomfortSummaryResource toResource(DiscomfortSummary summary) {
         return new DiscomfortSummaryResource(summary.roomId(), summary.roomCode(),
-                summary.noise(), summary.warm(), summary.cold(), summary.total());
+                summary.noise(), summary.warm(), summary.cold(), summary.total(),
+                summary.discrepancies());
     }
 }

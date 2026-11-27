@@ -9,5 +9,5 @@ import java.util.UUID;
  */
 @Schema(description = "Discomfort reports per room and category")
 public record DiscomfortSummaryResource(UUID roomId, String roomCode, long noise, long warm,
-                                        long cold, long total) {
+                                        long cold, long total, long discrepancies) {
 }

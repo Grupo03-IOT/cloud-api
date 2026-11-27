@@ -37,7 +37,19 @@ public enum IamError implements ErrorCatalog {
             "The credential '%s' is revoked"),
 
     UNKNOWN_SCOPE(ErrorKind.VALIDATION,
-            "'%s' is not a scope this API grants");
+            "'%s' is not a scope this API grants"),
+
+    DEMO_EMAIL_INVALID(ErrorKind.VALIDATION,
+            "This is not a valid email address"),
+
+    DEMO_ROOM_COUNT_TOO_HIGH(ErrorKind.VALIDATION,
+            "The number of rooms cannot exceed 10000"),
+
+    DEMO_CONSENT_REQUIRED(ErrorKind.VALIDATION,
+            "Consent is required to store the request"),
+
+    DEMO_REQUEST_LIMIT_REACHED(ErrorKind.RATE_LIMITED,
+            "Too many demo requests from this address; try again later");
 
     private static final String PREFIX = "IAM";
 

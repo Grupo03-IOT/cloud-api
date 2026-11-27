@@ -55,6 +55,17 @@ actualiza la alerta (por ejemplo, la cierra con `closed_by = AUTO`) en vez de
 duplicarla. Si una sala no existe se rechaza el lote entero con
 `MONITORING_ROOM_NOT_FOUND`.
 
+## Solicitudes de demostracion
+
+`POST /api/v1/demo-requests` es publico. Recibe
+`{"full_name":"...","work_email":"...","company":"...","room_count":5,"consent":true}`
+y responde 201 con `id` y `created_at`. `consent` debe ser `true` y el campo trampa
+`website` debe ir vacio (si llega relleno se responde 201 y no se guarda nada).
+Cada IP puede enviar `DEMO_REQUEST_LIMIT` solicitudes (5) cada `DEMO_REQUEST_WINDOW`
+(`PT10M`); despues responde 429 con `Retry-After`. `PUBLIC_FORM_ORIGINS` fija los
+origenes del navegador que pueden enviarlo (`https://grupo03-iot.github.io` por
+defecto). `GET /api/v1/demo-requests` lista las solicitudes y exige rol `ADMIN`.
+
 ## Verificacion
 
 Los agregados pueden incluir `sensors` con `sampled_at`, `movement`,

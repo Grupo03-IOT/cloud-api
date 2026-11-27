@@ -20,5 +20,8 @@ public enum ErrorKind {
 
     UNPROCESSABLE,
 
+    /** Quien llama ha pedido demasiado en poco tiempo. */
+    RATE_LIMITED,
+
     INTERNAL
 }

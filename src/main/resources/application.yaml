@@ -66,6 +66,12 @@ app:
     signing-key: ${JWT_SIGNING_KEY:}
   cors:
     allowed-origins: ${CORS_ORIGINS:}
+    # Orígenes que además pueden enviar el formulario público (solo POST /api/v1/demo-requests).
+    public-form-origins: ${PUBLIC_FORM_ORIGINS:https://grupo03-iot.github.io}
+  demo-requests:
+    rate-limit:
+      max-requests: ${DEMO_REQUEST_LIMIT:5}
+      window: ${DEMO_REQUEST_WINDOW:PT10M}
 
 logging:
   level:

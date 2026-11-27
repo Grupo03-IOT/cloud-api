@@ -23,6 +23,7 @@ public final class ErrorKindHttpMapper {
             case NOT_FOUND -> HttpStatus.NOT_FOUND;
             case CONFLICT -> HttpStatus.CONFLICT;
             case UNPROCESSABLE -> HttpStatus.UNPROCESSABLE_CONTENT;
+            case RATE_LIMITED -> HttpStatus.TOO_MANY_REQUESTS;
             case INTERNAL -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }

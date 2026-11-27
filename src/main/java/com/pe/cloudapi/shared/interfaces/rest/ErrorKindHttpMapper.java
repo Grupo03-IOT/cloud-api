@@ -19,6 +19,7 @@ public final class ErrorKindHttpMapper {
     public static HttpStatus toStatus(ErrorKind kind) {
         return switch (kind) {
             case VALIDATION -> HttpStatus.BAD_REQUEST;
+            case UNAUTHENTICATED -> HttpStatus.UNAUTHORIZED;
             case NOT_FOUND -> HttpStatus.NOT_FOUND;
             case CONFLICT -> HttpStatus.CONFLICT;
             case UNPROCESSABLE -> HttpStatus.UNPROCESSABLE_CONTENT;

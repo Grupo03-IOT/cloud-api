@@ -1,5 +1,6 @@
 package com.pe.cloudapi.monitoring.interfaces.acl;
 
+import com.pe.cloudapi.monitoring.application.internal.ports.in.FindRoomByCodeUseCase;
 import com.pe.cloudapi.monitoring.application.internal.ports.in.GetReadingsInRangeUseCase;
 import com.pe.cloudapi.monitoring.application.internal.ports.in.GetRoomContextUseCase;
 import com.pe.cloudapi.monitoring.application.internal.ports.in.ListRoomsUseCase;
@@ -9,6 +10,7 @@ import com.pe.cloudapi.monitoring.application.internal.results.RoomReadings;
 import com.pe.cloudapi.monitoring.application.internal.results.RoomSnapshot;
 
 import java.util.List;
+import com.pe.cloudapi.monitoring.domain.model.queries.FindRoomByCodeQuery;
 import com.pe.cloudapi.monitoring.domain.model.queries.GetReadingsInRangeQuery;
 import com.pe.cloudapi.monitoring.domain.model.queries.GetRoomQuery;
 import com.pe.cloudapi.monitoring.domain.model.queries.ListSiteRoomsQuery;
@@ -29,6 +31,7 @@ public class MonitoringContextFacadeImpl implements MonitoringContextFacade {
     private final ListRoomsUseCase listRooms;
     private final GetRoomContextUseCase getRoomContext;
     private final ListSiteRoomsUseCase listSiteRooms;
+    private final FindRoomByCodeUseCase findRoomByCode;
 
     @Override
     public RoomReadings readingsInRange(UUID roomId, OffsetDateTime from, OffsetDateTime to) {
@@ -48,5 +51,10 @@ public class MonitoringContextFacadeImpl implements MonitoringContextFacade {
     @Override
     public List<RoomContext> roomsOfSite(UUID siteId) {
         return listSiteRooms.execute(new ListSiteRoomsQuery(siteId));
+    }
+
+    @Override
+    public UUID roomIdByCode(String siteCode, String roomCode) {
+        return findRoomByCode.execute(new FindRoomByCodeQuery(siteCode, roomCode)).getId();
     }
 }

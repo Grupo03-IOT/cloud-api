@@ -28,5 +28,7 @@ public record AlertResource(
         @Schema(description = "AUTO when the Edge closed it") String closedBy,
         OffsetDateTime acknowledgedAt,
         UUID acknowledgedBy,
+        @Schema(description = "Full name of the user who acknowledged it; null if not "
+                + "acknowledged or the user no longer exists") String acknowledgedByName,
         String correctiveAction
 ) {}

@@ -9,9 +9,12 @@ import com.pe.cloudapi.iam.infrastructure.persistence.jpa.repositories.UserJpaRe
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -41,6 +44,13 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public boolean existsByEmail(String email) {
         return jpa.findByEmail(email).isPresent();
+    }
+
+    @Override
+    public Map<UUID, String> findDisplayNames(Collection<UUID> ids) {
+        return jpa.findDisplayNames(ids).stream()
+                .collect(Collectors.toMap(UserJpaRepository.DisplayNameView::getId,
+                        UserJpaRepository.DisplayNameView::getDisplayName));
     }
 
     @Override

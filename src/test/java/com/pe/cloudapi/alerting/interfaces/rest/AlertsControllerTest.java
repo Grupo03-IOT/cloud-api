@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -59,7 +61,7 @@ class AlertsControllerTest extends WebLayerTestSupport {
     @Test
     @DisplayName("200: an administrator lists alerts with the full resource, nulls included")
     void adminLists() throws Exception {
-        when(listAlerts.execute(any())).thenReturn(List.of(new RoomAlert(openAlert(), "sala-03")));
+        when(listAlerts.execute(any())).thenReturn(List.of(new RoomAlert(openAlert(), "sala-03", null)));
 
         mockMvc.perform(get("/api/v1/alerts").with(admin())
                         .param("status", "open").param("room_id", roomId.toString())
@@ -71,7 +73,8 @@ class AlertsControllerTest extends WebLayerTestSupport {
                 .andExpect(jsonPath("$[0].severity").value("warning"))
                 .andExpect(jsonPath("$[0].status").value("OPEN"))
                 .andExpect(jsonPath("$[0].closed_at").isEmpty())
-                .andExpect(jsonPath("$[0].corrective_action").isEmpty());
+                .andExpect(jsonPath("$[0].corrective_action").isEmpty())
+                .andExpect(content().string(containsString("\"acknowledged_by_name\":null")));
 
         ArgumentCaptor<ListAlertsQuery> query = ArgumentCaptor.forClass(ListAlertsQuery.class);
         verify(listAlerts).execute(query.capture());
@@ -128,7 +131,7 @@ class AlertsControllerTest extends WebLayerTestSupport {
     @Test
     @DisplayName("200 / 404: an administrator reads one alert")
     void getOne() throws Exception {
-        when(getAlert.execute(any())).thenReturn(new RoomAlert(openAlert(), "sala-03"));
+        when(getAlert.execute(any())).thenReturn(new RoomAlert(openAlert(), "sala-03", null));
         mockMvc.perform(get("/api/v1/alerts/" + alertId).with(admin()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.rule").value("sustained_noise"));
@@ -146,7 +149,7 @@ class AlertsControllerTest extends WebLayerTestSupport {
         Alert acknowledged = openAlert().toBuilder().status(AlertStatus.ACKNOWLEDGED)
                 .acknowledgedBy(adminId).acknowledgedAt(OffsetDateTime.parse("2026-11-08T14:15:00Z"))
                 .correctiveAction("Asked for silence in room 3").build();
-        when(acknowledgeAlert.execute(any())).thenReturn(new RoomAlert(acknowledged, "sala-03"));
+        when(acknowledgeAlert.execute(any())).thenReturn(new RoomAlert(acknowledged, "sala-03", "Ana Torres"));
 
         mockMvc.perform(patch("/api/v1/alerts/" + alertId + "/acknowledge")
                         .with(admin().jwt(jwt -> jwt.subject(adminId.toString())))
@@ -155,7 +158,8 @@ class AlertsControllerTest extends WebLayerTestSupport {
                                 + "\"acknowledged_by\":\"" + UUID.randomUUID() + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ACKNOWLEDGED"))
-                .andExpect(jsonPath("$.acknowledged_by").value(adminId.toString()));
+                .andExpect(jsonPath("$.acknowledged_by").value(adminId.toString()))
+                .andExpect(jsonPath("$.acknowledged_by_name").value("Ana Torres"));
 
         ArgumentCaptor<AcknowledgeAlertCommand> command = ArgumentCaptor.forClass(AcknowledgeAlertCommand.class);
         verify(acknowledgeAlert).execute(command.capture());

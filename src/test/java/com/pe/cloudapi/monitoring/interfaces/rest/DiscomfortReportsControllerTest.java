@@ -11,6 +11,7 @@ import com.pe.cloudapi.monitoring.domain.model.commands.FileDiscomfortReportComm
 import com.pe.cloudapi.monitoring.domain.model.errors.MonitoringError;
 import com.pe.cloudapi.monitoring.domain.model.queries.ListDiscomfortReportsQuery;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.DiscomfortCategory;
+import com.pe.cloudapi.monitoring.domain.model.valueobjects.DiscrepancyReason;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.ReadingAtReport;
 import com.pe.cloudapi.monitoring.interfaces.rest.transform.DiscomfortReportResourceAssembler;
 import com.pe.cloudapi.support.WebLayerTestConfiguration;
@@ -31,13 +32,16 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -61,7 +65,8 @@ class DiscomfortReportsControllerTest extends WebLayerTestSupport {
     @Test
     @DisplayName("201: a MEMBER files a report; the user comes from the token, not the body")
     void memberFiles() throws Exception {
-        when(fileReport.execute(any())).thenReturn(new RoomDiscomfortReport(report(), "sala-03"));
+        when(fileReport.execute(any())).thenReturn(new RoomDiscomfortReport(report(), "sala-03",
+                DiscrepancyReason.TEMPERATURE_WITHIN_RANGE));
 
         mockMvc.perform(post("/api/v1/discomfort-reports")
                         .with(member().jwt(jwt -> jwt.subject(userId.toString())))
@@ -71,7 +76,9 @@ class DiscomfortReportsControllerTest extends WebLayerTestSupport {
                 .andExpect(jsonPath("$.room_code").value("sala-03"))
                 .andExpect(jsonPath("$.category").value("WARM"))
                 .andExpect(jsonPath("$.reading.temp_c").value(24.9))
-                .andExpect(jsonPath("$.reading.laeq").value(52.1));
+                .andExpect(jsonPath("$.reading.laeq").value(52.1))
+                .andExpect(jsonPath("$.discrepancy").value(true))
+                .andExpect(jsonPath("$.discrepancy_reason").value("TEMPERATURE_WITHIN_RANGE"));
 
         ArgumentCaptor<FileDiscomfortReportCommand> command =
                 ArgumentCaptor.forClass(FileDiscomfortReportCommand.class);
@@ -85,14 +92,16 @@ class DiscomfortReportsControllerTest extends WebLayerTestSupport {
     @DisplayName("201: an ADMIN may file too, and reading is null when there was none")
     void adminFilesWithoutReading() throws Exception {
         when(fileReport.execute(any())).thenReturn(new RoomDiscomfortReport(
-                report().toBuilder().reading(null).comment(null).build(), "sala-03"));
+                report().toBuilder().reading(null).comment(null).build(), "sala-03", null));
 
         mockMvc.perform(post("/api/v1/discomfort-reports")
                         .with(admin().jwt(jwt -> jwt.subject(userId.toString())))
                         .contentType(MediaType.APPLICATION_JSON).content(body()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.reading").isEmpty())
-                .andExpect(jsonPath("$.comment").isEmpty());
+                .andExpect(jsonPath("$.comment").isEmpty())
+                .andExpect(jsonPath("$.discrepancy").value(false))
+                .andExpect(content().string(containsString("\"discrepancy_reason\":null")));
     }
 
     @Test
@@ -153,7 +162,7 @@ class DiscomfortReportsControllerTest extends WebLayerTestSupport {
     @Test
     @DisplayName("200: an ADMIN lists with filters")
     void adminLists() throws Exception {
-        when(listReports.execute(any())).thenReturn(List.of(new RoomDiscomfortReport(report(), "sala-03")));
+        when(listReports.execute(any())).thenReturn(List.of(new RoomDiscomfortReport(report(), "sala-03", null)));
 
         mockMvc.perform(get("/api/v1/discomfort-reports").with(admin())
                         .param("room_id", roomId.toString()).param("category", "warm")
@@ -165,6 +174,26 @@ class DiscomfortReportsControllerTest extends WebLayerTestSupport {
         verify(listReports).execute(query.capture());
         assertThat(query.getValue().category()).isEqualTo(DiscomfortCategory.WARM);
         assertThat(query.getValue().roomId()).isEqualTo(roomId);
+        assertThat(query.getValue().discrepancy()).isNull();
+    }
+
+    @Test
+    @DisplayName("200: the discrepancy filter reaches the query; 400 if it is not a boolean")
+    void discrepancyFilter() throws Exception {
+        for (boolean wanted : new boolean[] {true, false}) {
+            clearInvocations(listReports);
+
+            mockMvc.perform(get("/api/v1/discomfort-reports").with(admin())
+                            .param("discrepancy", String.valueOf(wanted)))
+                    .andExpect(status().isOk());
+
+            ArgumentCaptor<ListDiscomfortReportsQuery> query =
+                    ArgumentCaptor.forClass(ListDiscomfortReportsQuery.class);
+            verify(listReports).execute(query.capture());
+            assertThat(query.getValue().discrepancy()).isEqualTo(wanted);
+        }
+        mockMvc.perform(get("/api/v1/discomfort-reports").with(admin()).param("discrepancy", "maybe"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -179,7 +208,7 @@ class DiscomfortReportsControllerTest extends WebLayerTestSupport {
     @Test
     @DisplayName("200: anyone signed in sees their own reports")
     void mine() throws Exception {
-        when(listReports.ofUser(userId)).thenReturn(List.of(new RoomDiscomfortReport(report(), "sala-03")));
+        when(listReports.ofUser(userId)).thenReturn(List.of(new RoomDiscomfortReport(report(), "sala-03", null)));
 
         mockMvc.perform(get("/api/v1/discomfort-reports/mine")
                         .with(member().jwt(jwt -> jwt.subject(userId.toString()))))
@@ -192,7 +221,7 @@ class DiscomfortReportsControllerTest extends WebLayerTestSupport {
     @DisplayName("200: an ADMIN reads the summary; 400 on an inverted range")
     void summary() throws Exception {
         when(listReports.summarize(any(), any())).thenReturn(List.of(
-                new DiscomfortSummary(roomId, "sala-03", 3, 5, 0)));
+                new DiscomfortSummary(roomId, "sala-03", 3, 5, 0, 2)));
 
         mockMvc.perform(get("/api/v1/discomfort-reports/summary").with(admin()))
                 .andExpect(status().isOk())
@@ -200,7 +229,8 @@ class DiscomfortReportsControllerTest extends WebLayerTestSupport {
                 .andExpect(jsonPath("$[0].noise").value(3))
                 .andExpect(jsonPath("$[0].warm").value(5))
                 .andExpect(jsonPath("$[0].cold").value(0))
-                .andExpect(jsonPath("$[0].total").value(8));
+                .andExpect(jsonPath("$[0].total").value(8))
+                .andExpect(jsonPath("$[0].discrepancies").value(2));
 
         mockMvc.perform(get("/api/v1/discomfort-reports/summary").with(admin())
                         .param("from", "2026-11-09T00:00:00Z").param("to", "2026-11-08T00:00:00Z"))

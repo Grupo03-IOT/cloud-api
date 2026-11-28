@@ -94,9 +94,12 @@ public class DiscomfortReportsController {
 
             @Parameter(description = "Created at or before, UTC")
             @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to) {
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to,
 
-        return listReports.execute(assembler.toQuery(roomId, category, from, to))
+            @Parameter(description = "true: only with a discrepancy; false: only without")
+            @RequestParam(required = false) Boolean discrepancy) {
+
+        return listReports.execute(assembler.toQuery(roomId, category, from, to, discrepancy))
                 .stream().map(assembler::toResource).toList();
     }
 
@@ -114,7 +117,8 @@ public class DiscomfortReportsController {
 
     @GetMapping("/summary")
     @Operation(summary = "Count reports per room and category",
-            description = "Only rooms with at least one report in the range; most reported first.")
+            description = "Only rooms with at least one report in the range; most reported first. "
+                    + "discrepancies counts the reports the reading did not back.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Summary returned"),
             @ApiResponse(responseCode = "400", description = "Inverted range"),

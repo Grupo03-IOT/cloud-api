@@ -6,7 +6,6 @@ import com.pe.cloudapi.alerting.domain.model.aggregates.Alert;
 import com.pe.cloudapi.alerting.domain.model.commands.AcknowledgeAlertCommand;
 import com.pe.cloudapi.alerting.domain.model.errors.AlertingError;
 import com.pe.cloudapi.alerting.domain.ports.out.AlertRepository;
-import com.pe.cloudapi.alerting.domain.ports.out.RoomDirectory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +24,7 @@ import java.time.ZoneOffset;
 public class AcknowledgeAlertUseCaseImpl implements AcknowledgeAlertUseCase {
 
     private final AlertRepository alerts;
-    private final RoomDirectory roomDirectory;
+    private final RoomAlerts roomAlerts;
 
     @Override
     @Transactional
@@ -35,6 +34,6 @@ public class AcknowledgeAlertUseCaseImpl implements AcknowledgeAlertUseCase {
         alert.acknowledge(command, OffsetDateTime.now(ZoneOffset.UTC));
         Alert saved = alerts.save(alert);
         log.info("alert.acknowledged id={} by={}", saved.getId(), saved.getAcknowledgedBy());
-        return new RoomAlert(saved, roomDirectory.roomCodes().get(saved.getRoomId()));
+        return roomAlerts.of(saved);
     }
 }

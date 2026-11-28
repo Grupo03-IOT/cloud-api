@@ -6,14 +6,13 @@ import com.pe.cloudapi.alerting.domain.model.aggregates.Alert;
 import com.pe.cloudapi.alerting.domain.model.errors.AlertingError;
 import com.pe.cloudapi.alerting.domain.model.queries.GetAlertQuery;
 import com.pe.cloudapi.alerting.domain.ports.out.AlertRepository;
-import com.pe.cloudapi.alerting.domain.ports.out.RoomDirectory;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Obtener una alerta con el código actual de su sala.
+ * Obtener una alerta con su sala y quién la reconoció.
  */
 @Service
 @RequiredArgsConstructor
@@ -21,12 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class GetAlertUseCaseImpl implements GetAlertUseCase {
 
     private final AlertRepository alerts;
-    private final RoomDirectory roomDirectory;
+    private final RoomAlerts roomAlerts;
 
     @Override
     public RoomAlert execute(GetAlertQuery query) {
         Alert alert = alerts.findById(query.alertId())
                 .orElseThrow(() -> AlertingError.ALERT_NOT_FOUND.with(query.alertId()));
-        return new RoomAlert(alert, roomDirectory.roomCodes().get(alert.getRoomId()));
+        return roomAlerts.of(alert);
     }
 }

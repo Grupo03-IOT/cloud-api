@@ -70,6 +70,7 @@ public class AlertResourceAssembler {
                 alert.getClosedBy() == null ? null : alert.getClosedBy().name(),
                 alert.getAcknowledgedAt(),
                 alert.getAcknowledgedBy(),
+                result.acknowledgedByName(),
                 alert.getCorrectiveAction());
     }
 }

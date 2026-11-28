@@ -10,6 +10,9 @@ import com.pe.cloudapi.alerting.domain.model.queries.ListAlertsQuery;
 import com.pe.cloudapi.alerting.domain.model.valueobjects.AlertClosure;
 import com.pe.cloudapi.alerting.domain.model.valueobjects.AlertSeverity;
 import com.pe.cloudapi.alerting.domain.model.valueobjects.AlertStatus;
+import com.pe.cloudapi.iam.domain.model.aggregates.User;
+import com.pe.cloudapi.iam.domain.model.valueobjects.Role;
+import com.pe.cloudapi.iam.domain.ports.out.UserRepository;
 import com.pe.cloudapi.monitoring.domain.model.aggregates.Room;
 import com.pe.cloudapi.monitoring.domain.model.aggregates.Site;
 import com.pe.cloudapi.monitoring.domain.model.commands.CreateRoomCommand;
@@ -26,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +51,7 @@ class AlertLifecycleIntegrationTest {
     @Autowired AcknowledgeAlertUseCase acknowledge;
     @Autowired SiteRepository sites;
     @Autowired RoomRepository rooms;
+    @Autowired UserRepository users;
 
     @Test
     @DisplayName("open, retry, acknowledge and close automatically")
@@ -66,8 +71,11 @@ class AlertLifecycleIntegrationTest {
         assertThat(open.getFirst().alert().getRoomId()).isEqualTo(room.getId());
         UUID alertId = open.getFirst().alert().getId();
 
-        UUID admin = UUID.randomUUID();
-        acknowledge.execute(new AcknowledgeAlertCommand(alertId, admin, "Asked for silence in room 3"));
+        UUID admin = users.save(new User("ack-" + suffix + "@test.local", "x".repeat(60),
+                "Ana Torres", Set.of(Role.ADMIN))).getId();
+        assertThat(acknowledge.execute(
+                new AcknowledgeAlertCommand(alertId, admin, "Asked for silence in room 3"))
+                .acknowledgedByName()).isEqualTo("Ana Torres");
         assertThat(listAlerts.execute(new ListAlertsQuery(null, room.getId(), null, null, true)))
                 .singleElement()
                 .satisfies(r -> assertThat(r.alert().getStatus()).isEqualTo(AlertStatus.ACKNOWLEDGED));
@@ -80,6 +88,7 @@ class AlertLifecycleIntegrationTest {
             assertThat(r.alert().getId()).isEqualTo(alertId);
             assertThat(r.alert().getClosedBy()).isEqualTo(AlertClosure.AUTO);
             assertThat(r.alert().getAcknowledgedBy()).isEqualTo(admin);
+            assertThat(r.acknowledgedByName()).isEqualTo("Ana Torres");
             assertThat(r.alert().getCorrectiveAction()).isEqualTo("Asked for silence in room 3");
         });
         assertThat(listAlerts.execute(new ListAlertsQuery(null, room.getId(), null, null, false))).isEmpty();

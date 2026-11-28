@@ -55,6 +55,9 @@ management:
         include: health,info
 
 app:
+  monitoring:
+    # Límite inferior de confort térmico, para contrastar los reportes de frío.
+    comfort-min-temp-c: ${COMFORT_MIN_TEMP_C:20}
   iam:
     access-token-ttl: ${ACCESS_TOKEN_TTL:PT1H}
     # Cuánto se recuerda que una cuenta sigue activa antes de volver a consultarla.

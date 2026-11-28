@@ -3,12 +3,9 @@ package com.pe.cloudapi.monitoring.application.internal.usecases;
 import com.pe.cloudapi.monitoring.application.internal.ports.in.ListDiscomfortReportsUseCase;
 import com.pe.cloudapi.monitoring.application.internal.results.DiscomfortSummary;
 import com.pe.cloudapi.monitoring.application.internal.results.RoomDiscomfortReport;
-import com.pe.cloudapi.monitoring.domain.model.aggregates.DiscomfortReport;
-import com.pe.cloudapi.monitoring.domain.model.aggregates.Room;
 import com.pe.cloudapi.monitoring.domain.model.queries.ListDiscomfortReportsQuery;
 import com.pe.cloudapi.monitoring.domain.model.valueobjects.DiscomfortCategory;
 import com.pe.cloudapi.monitoring.domain.ports.out.DiscomfortReportRepository;
-import com.pe.cloudapi.monitoring.domain.ports.out.RoomRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,11 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -33,16 +27,26 @@ import java.util.stream.Collectors;
 public class ListDiscomfortReportsUseCaseImpl implements ListDiscomfortReportsUseCase {
 
     private final DiscomfortReportRepository reports;
-    private final RoomRepository rooms;
+    private final RoomDiscomfortReports roomReports;
 
+    /**
+     * La discrepancia no se guarda: se calcula con los umbrales vigentes, así
+     * que su filtro se aplica después de buscar.
+     */
     @Override
     public List<RoomDiscomfortReport> execute(ListDiscomfortReportsQuery query) {
-        return withRoomCodes(reports.search(query));
+        List<RoomDiscomfortReport> found = roomReports.of(reports.search(query));
+        if (query.discrepancy() == null) {
+            return found;
+        }
+        return found.stream()
+                .filter(report -> report.hasDiscrepancy() == query.discrepancy())
+                .toList();
     }
 
     @Override
     public List<RoomDiscomfortReport> ofUser(UUID userId) {
-        return withRoomCodes(reports.findByUserId(userId));
+        return roomReports.of(reports.findByUserId(userId));
     }
 
     /**
@@ -52,32 +56,28 @@ public class ListDiscomfortReportsUseCaseImpl implements ListDiscomfortReportsUs
      */
     @Override
     public List<DiscomfortSummary> summarize(OffsetDateTime from, OffsetDateTime to) {
-        Map<UUID, Map<DiscomfortCategory, Long>> counts = reports
-                .search(ListDiscomfortReportsQuery.between(from, to)).stream()
-                .collect(Collectors.groupingBy(DiscomfortReport::getRoomId, LinkedHashMap::new,
-                        Collectors.groupingBy(DiscomfortReport::getCategory,
-                                () -> new EnumMap<>(DiscomfortCategory.class), Collectors.counting())));
-        Map<UUID, String> codes = new HashMap<>();
-        return counts.entrySet().stream()
-                .map(entry -> new DiscomfortSummary(
-                        entry.getKey(),
-                        codeOf(entry.getKey(), codes),
-                        entry.getValue().getOrDefault(DiscomfortCategory.NOISE, 0L),
-                        entry.getValue().getOrDefault(DiscomfortCategory.WARM, 0L),
-                        entry.getValue().getOrDefault(DiscomfortCategory.COLD, 0L)))
+        return roomReports.of(reports.search(ListDiscomfortReportsQuery.between(from, to))).stream()
+                .collect(Collectors.groupingBy(result -> result.report().getRoomId(),
+                        LinkedHashMap::new, Collectors.toList()))
+                .values().stream()
+                .map(ListDiscomfortReportsUseCaseImpl::summaryOf)
                 .sorted(Comparator.comparingLong(DiscomfortSummary::total).reversed()
                         .thenComparing(DiscomfortSummary::roomCode, Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
     }
 
-    private List<RoomDiscomfortReport> withRoomCodes(List<DiscomfortReport> found) {
-        Map<UUID, String> codes = new HashMap<>();
-        return found.stream()
-                .map(report -> new RoomDiscomfortReport(report, codeOf(report.getRoomId(), codes)))
-                .toList();
+    private static DiscomfortSummary summaryOf(List<RoomDiscomfortReport> ofRoom) {
+        RoomDiscomfortReport first = ofRoom.getFirst();
+        return new DiscomfortSummary(
+                first.report().getRoomId(),
+                first.roomCode(),
+                countOf(ofRoom, DiscomfortCategory.NOISE),
+                countOf(ofRoom, DiscomfortCategory.WARM),
+                countOf(ofRoom, DiscomfortCategory.COLD),
+                ofRoom.stream().filter(RoomDiscomfortReport::hasDiscrepancy).count());
     }
 
-    private String codeOf(UUID roomId, Map<UUID, String> cache) {
-        return cache.computeIfAbsent(roomId, id -> rooms.findById(id).map(Room::getCode).orElse(null));
+    private static long countOf(List<RoomDiscomfortReport> ofRoom, DiscomfortCategory category) {
+        return ofRoom.stream().filter(result -> result.report().getCategory() == category).count();
     }
 }
